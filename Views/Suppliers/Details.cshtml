@@ -1,0 +1,71 @@
+@model GasStationMS.Models.Supplier
+@{ ViewData["Title"] = Model.Name; }
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <div>
+        <a asp-action="Index" style="color:var(--text-muted); text-decoration:none;">← Մատակարարներ</a>
+        <h1 style="margin:4px 0 0;">🏭 @Model.Name</h1>
+    </div>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">✏️ Խմբագրել</a>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="stat-card primary"><h6>Մատակարարումներ</h6><div class="value">@ViewBag.TotalDeliveries</div></div></div>
+    <div class="col-md-3"><div class="stat-card success"><h6>Ընդհ․ ծավալ</h6><div class="value">@(((decimal)ViewBag.TotalVolume).ToString("N1")) լ</div></div></div>
+    <div class="col-md-3"><div class="stat-card info"><h6>Ընդհ․ ծախս</h6><div class="value">@(((decimal)ViewBag.TotalSpent).ToString("N0")) ֏</div></div></div>
+    <div class="col-md-3"><div class="stat-card warning"><h6>Միջին գին/լ</h6><div class="value">@(((decimal)ViewBag.AvgPrice).ToString("N0")) ֏</div></div></div>
+</div>
+
+<div class="content-card">
+    <h3>Ամսական դինամիկա</h3>
+    <canvas id="monthlyChart" style="max-height:300px;"></canvas>
+</div>
+
+<div class="content-card">
+    <h3>Մատակարարումների պատմություն</h3>
+    <table class="table">
+        <thead><tr><th>Ամսաթիվ</th><th>Կայան</th><th>Վառելիք</th><th>Ծավալ</th><th>Գին/լ</th><th>Գումար</th><th>Հաշիվ-ապրանքագիր</th></tr></thead>
+        <tbody>
+        @foreach (var d in Model.Deliveries.OrderByDescending(x => x.DeliveredAt))
+        {
+            <tr>
+                <td>@d.DeliveredAt.ToString("yyyy-MM-dd")</td>
+                <td>@d.FuelTank?.Station?.Name</td>
+                <td>@d.FuelTank?.FuelType?.Name</td>
+                <td>@d.VolumeLiters.ToString("N1") լ</td>
+                <td>@d.PricePerLiter.ToString("N0") ֏</td>
+                <td><strong>@d.TotalCost.ToString("N0") ֏</strong></td>
+                <td>@d.InvoiceNumber</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const monthly = @Html.Raw(Json.Serialize(ViewBag.MonthlyData));
+        if (monthly && monthly.length > 0) {
+            new Chart(document.getElementById('monthlyChart'), {
+                type: 'bar',
+                data: {
+                    labels: monthly.map(m => m.period),
+                    datasets: [
+                        { label: 'Ծավալ (լիտր)', data: monthly.map(m => m.volume),
+                          backgroundColor: '#10b981', yAxisID: 'y' },
+                        { label: 'Գումար (֏)', data: monthly.map(m => m.cost),
+                          backgroundColor: '#667eea', yAxisID: 'y1' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { position: 'left', title: { display: true, text: 'Ծավալ' } },
+                        y1: { position: 'right', title: { display: true, text: 'Գումար' }, grid: { drawOnChartArea: false } }
+                    }
+                }
+            });
+        }
+    </script>
+}

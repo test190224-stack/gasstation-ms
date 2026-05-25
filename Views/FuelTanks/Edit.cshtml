@@ -1,0 +1,54 @@
+@model GasStationMS.Models.FuelTank
+@{ ViewData["Title"] = "Խմբագրել ռեզերվուարը"; }
+
+<h1>✏️ Խմբագրել՝ @Model.TankCode</h1>
+
+<div class="content-card" style="max-width: 700px;">
+    <form asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="CurrentVolumeLiters" />
+        <input type="hidden" asp-for="LastUpdated" />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3"><label class="form-label">Կոդ</label><input asp-for="TankCode" class="form-control" /></div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Կայան</label>
+                <select asp-for="StationId" class="form-select">
+                    @foreach (var s in (IEnumerable<GasStationMS.Models.Station>)ViewBag.Stations)
+                    {
+                        <option value="@s.Id">@s.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Վառելիք</label>
+            <select asp-for="FuelTypeId" class="form-select">
+                @foreach (var f in (IEnumerable<GasStationMS.Models.FuelType>)ViewBag.FuelTypes)
+                {
+                    <option value="@f.Id">@f.Name</option>
+                }
+            </select>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3"><label class="form-label">Տարողություն</label><input asp-for="CapacityLiters" type="number" class="form-control" /></div>
+            <div class="col-md-6 mb-3"><label class="form-label">Նվազագույն շեմ</label><input asp-for="MinThresholdLiters" type="number" class="form-control" /></div>
+        </div>
+        <div class="alert alert-info">
+            <strong>Ներկա մակարդակ՝</strong> @Model.CurrentVolumeLiters.ToString("N1") լ (@Model.FillPercentage%)
+            <br /><small>Ներկա մակարդակը չի կարող ձեռքով փոփոխվել — օգտագործեք «Մատակարարում» էջը։</small>
+        </div>
+        <div class="form-check mb-3">
+            <input asp-for="IsActive" type="checkbox" class="form-check-input" />
+            <label class="form-check-label">Ակտիվ</label>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">💾 Պահպանել</button>
+            <a asp-controller="FuelInventory" asp-action="Index" class="btn btn-outline-secondary">Չեղարկել</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

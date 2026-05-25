@@ -1,0 +1,62 @@
+@model GasStationMS.Models.FuelTank
+@{ ViewData["Title"] = "Նոր ռեզերվուար"; }
+
+<h1>⛽ Նոր ռեզերվուարի ստեղծում</h1>
+
+<div class="content-card" style="max-width: 700px;">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="TankCode" class="form-label">Ռեզերվուարի կոդ</label>
+                <input asp-for="TankCode" class="form-control" placeholder="Ավտոմատ, օր․ T-013" />
+                <small class="text-muted">Թողեք դատարկ ավտոմատ սերնդավորման համար</small>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="StationId" class="form-label">Կայան <span class="text-danger">*</span></label>
+                <select asp-for="StationId" class="form-select">
+                    <option value="">-- Ընտրեք --</option>
+                    @foreach (var s in (IEnumerable<GasStationMS.Models.Station>)ViewBag.Stations)
+                    {
+                        <option value="@s.Id">@s.Name</option>
+                    }
+                </select>
+                <span asp-validation-for="StationId" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="FuelTypeId" class="form-label">Վառելիքի տեսակ <span class="text-danger">*</span></label>
+            <select asp-for="FuelTypeId" class="form-select">
+                <option value="">-- Ընտրեք --</option>
+                @foreach (var f in (IEnumerable<GasStationMS.Models.FuelType>)ViewBag.FuelTypes)
+                {
+                    <option value="@f.Id">@f.Name (@f.Code)</option>
+                }
+            </select>
+            <span asp-validation-for="FuelTypeId" class="text-danger"></span>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="CapacityLiters" class="form-label">Տարողություն (լիտր) <span class="text-danger">*</span></label>
+                <input asp-for="CapacityLiters" type="number" step="0.01" class="form-control" />
+                <span asp-validation-for="CapacityLiters" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="MinThresholdLiters" class="form-label">Նվազագույն շեմ (լիտր)</label>
+                <input asp-for="MinThresholdLiters" type="number" step="0.01" class="form-control" />
+                <small class="text-muted">Երբ մակարդակը իջնի այս շեմից ներքև, տրվի ահազանգ</small>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary">✅ Ստեղծել</button>
+            <a asp-controller="FuelInventory" asp-action="Index" class="btn btn-outline-secondary">Չեղարկել</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

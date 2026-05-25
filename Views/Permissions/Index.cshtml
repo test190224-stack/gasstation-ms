@@ -1,0 +1,23 @@
+@model IEnumerable<GasStationMS.Models.Employee>
+@{ ViewData["Title"] = "Մուտքի իրավ."; }
+
+<h1>🔑 Աշխատակիցների մուտքի իրավ.</h1>
+<p class="text-muted">Admin-ը կարող է ամեն աշխ.-ի համար հատկաձևել իրավ.ները՝ ռոլի կանխ-ի վրա։</p>
+
+<div class="content-card">
+    <table class="table table-hover">
+        <thead><tr><th>Աշ.</th><th>Ռոլ</th><th>Կ.</th><th>Կ. Հ.</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var e in Model)
+        {
+            <tr>
+                <td><strong>@e.FullName</strong></td>
+                <td>@e.Role</td>
+                <td>@e.Station?.Name</td>
+                <td>@(!string.IsNullOrEmpty(e.UserId) ? "✅ Ունի" : "—")</td>
+                <td><a asp-action="Edit" asp-route-id="@e.Id" class="btn btn-sm btn-outline-primary">🔑 Կ. iphoxox</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

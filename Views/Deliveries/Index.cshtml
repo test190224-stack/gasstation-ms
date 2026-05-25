@@ -1,0 +1,73 @@
+@model IEnumerable<GasStationMS.Models.FuelDelivery>
+@{ ViewData["Title"] = "Մատակարարումներ"; }
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h1 style="margin:0;">🚚 Վառելիքի մատակարարումներ</h1>
+    <a asp-action="Create" class="btn btn-primary">+ Նոր մատակարարում</a>
+</div>
+
+<div class="content-card">
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-3">
+            <label class="form-label" style="font-size:13px;">Սկիզբ</label>
+            <input type="date" name="from" value="@(((DateTime)ViewBag.From).ToString("yyyy-MM-dd"))" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" style="font-size:13px;">Ավարտ</label>
+            <input type="date" name="to" value="@(((DateTime)ViewBag.To).ToString("yyyy-MM-dd"))" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" style="font-size:13px;">Կայան</label>
+            <select name="stationId" class="form-select">
+                <option value="">Բոլորը</option>
+                @foreach (var s in (IEnumerable<GasStationMS.Models.Station>)ViewBag.Stations)
+                {
+                    <option value="@s.Id" selected="@(ViewBag.SelectedStationId == s.Id)">@s.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-outline-primary w-100">Ֆիլտր</button>
+        </div>
+    </form>
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-6"><div class="stat-card success"><h6>Ընդհ․ ծավալ</h6><div class="value">@(((decimal)ViewBag.TotalVolume).ToString("N1")) լ</div></div></div>
+        <div class="col-md-6"><div class="stat-card info"><h6>Ընդհ․ ծախս</h6><div class="value">@(((decimal)ViewBag.TotalCost).ToString("N0")) ֏</div></div></div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Ամսաթիվ</th><th>Կայան</th><th>Ռեզերվուար</th><th>Վառելիք</th>
+                <th>Ծավալ</th><th>Մնում է (FIFO)</th><th>Գին/լ</th><th>Գումար</th><th>Մատակարար</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var d in Model)
+        {
+            <tr>
+                <td>@d.DeliveredAt.ToString("yyyy-MM-dd HH:mm")</td>
+                <td>@d.FuelTank?.Station?.Name</td>
+                <td><code>@d.FuelTank?.TankCode</code></td>
+                <td>@d.FuelTank?.FuelType?.Name</td>
+                <td>@d.VolumeLiters.ToString("N1") լ</td>
+                <td>
+                    @if (d.RemainingLiters > 0)
+                    {
+                        <span class="badge-soft-success">@d.RemainingLiters.ToString("N1") լ</span>
+                    }
+                    else
+                    {
+                        <span class="badge-soft-info">Սպառված</span>
+                    }
+                </td>
+                <td>@d.PricePerLiter.ToString("N0") ֏</td>
+                <td><strong>@d.TotalCost.ToString("N0") ֏</strong></td>
+                <td>@(d.Supplier?.Name ?? d.SupplierName ?? "—")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (!Model.Any()) { <p class="text-muted text-center">Տվյալ ժամանակահատվածում մատակարարումներ չկան։</p> }
+</div>

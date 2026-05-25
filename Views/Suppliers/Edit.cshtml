@@ -1,0 +1,33 @@
+@model GasStationMS.Models.Supplier
+@{ ViewData["Title"] = "Խմբագրել"; }
+
+<h1>✏️ Խմբագրել՝ @Model.Name</h1>
+
+<div class="content-card" style="max-width: 700px;">
+    <form asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3"><label class="form-label">Անվանում</label><input asp-for="Name" class="form-control" /></div>
+            <div class="col-md-6 mb-3"><label class="form-label">ՀՎՀՀ</label><input asp-for="TaxId" class="form-control" /></div>
+        </div>
+        <div class="mb-3"><label class="form-label">Հասցե</label><input asp-for="Address" class="form-control" /></div>
+        <div class="row">
+            <div class="col-md-6 mb-3"><label class="form-label">Հեռախոս</label><input asp-for="PhoneNumber" class="form-control" /></div>
+            <div class="col-md-6 mb-3"><label class="form-label">Էլ․ փոստ</label><input asp-for="Email" class="form-control" /></div>
+        </div>
+        <div class="mb-3"><label class="form-label">Կոնտակտային անձ</label><input asp-for="ContactPerson" class="form-control" /></div>
+        <div class="form-check mb-3">
+            <input asp-for="IsActive" type="checkbox" class="form-check-input" />
+            <label class="form-check-label">Ակտիվ</label>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">💾 Պահպանել</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Չեղարկել</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

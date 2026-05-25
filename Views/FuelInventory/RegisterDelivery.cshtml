@@ -1,0 +1,60 @@
+@model GasStationMS.Models.FuelDelivery
+@{
+    ViewData["Title"] = "Մատակարարման գրանցում";
+    var tank = ViewBag.Tank as GasStationMS.Models.FuelTank;
+}
+
+<h1>📦 Վառելիքի մատակարարման գրանցում</h1>
+
+<div class="content-card" style="max-width: 700px;">
+    @if (tank != null)
+    {
+        <div class="alert alert-info">
+            <strong>Ռեզերվուար՝</strong> @tank.TankCode (@tank.FuelType.Name) — @tank.Station.Name<br />
+            <strong>Առկա՝</strong> @tank.CurrentVolumeLiters.ToString("N1") լ / @tank.CapacityLiters.ToString("N0") լ<br />
+            <strong>Ազատ տեղ՝</strong> @((tank.CapacityLiters - tank.CurrentVolumeLiters).ToString("N1")) լ
+        </div>
+    }
+
+    <form asp-action="RegisterDelivery" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="FuelTankId" />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="VolumeLiters" class="form-label">Ծավալ (լիտր)</label>
+                <input asp-for="VolumeLiters" type="number" step="0.01" class="form-control" />
+                <span asp-validation-for="VolumeLiters" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="PricePerLiter" class="form-label">Գին 1 լիտրի (֏)</label>
+                <input asp-for="PricePerLiter" type="number" step="0.01" class="form-control" />
+                <span asp-validation-for="PricePerLiter" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="SupplierName" class="form-label">Մատակարարի անուն</label>
+                <input asp-for="SupplierName" class="form-control" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="InvoiceNumber" class="form-label">Հաշիվ-ապրանքագրի N</label>
+                <input asp-for="InvoiceNumber" class="form-control" />
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Notes" class="form-label">Նշումներ</label>
+            <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary">Գրանցել</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Չեղարկել</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

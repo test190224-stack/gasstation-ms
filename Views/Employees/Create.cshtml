@@ -1,0 +1,86 @@
+@model GasStationMS.Models.Employee
+@{ ViewData["Title"] = "Նոր աշխատակից"; }
+
+<h1>👥 Նոր աշխատակցի գրանցում</h1>
+
+<div class="content-card" style="max-width: 800px;">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <h5>Անձնական տվյալներ</h5>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label asp-for="LastName" class="form-label">Ազգանուն <span class="text-danger">*</span></label>
+                <input asp-for="LastName" class="form-control" />
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label asp-for="FirstName" class="form-label">Անուն <span class="text-danger">*</span></label>
+                <input asp-for="FirstName" class="form-control" />
+                <span asp-validation-for="FirstName" class="text-danger"></span>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label asp-for="MiddleName" class="form-label">Հայրանուն</label>
+                <input asp-for="MiddleName" class="form-control" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="PhoneNumber" class="form-label">Հեռախոս</label>
+                <input asp-for="PhoneNumber" class="form-control" placeholder="+374 ..." />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="BaseSalary" class="form-label">Բազային աշխատավարձ (֏)</label>
+                <input asp-for="BaseSalary" type="number" class="form-control" />
+            </div>
+        </div>
+
+        <h5>Աշխատանքային տվյալներ</h5>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="Role" class="form-label">Պաշտոն <span class="text-danger">*</span></label>
+                <select asp-for="Role" class="form-select">
+                    <option value="1">Օպերատոր (վաճառք)</option>
+                    <option value="2">Մենեջեր (կայանի ղեկավար)</option>
+                    <option value="3">Հաշվապահ</option>
+                    <option value="4">Ցանցի կառավարիչ</option>
+                    <option value="5">Ադմինիստրատոր (full access)</option>
+                </select>
+                <small class="text-muted">Պաշտոնից կախված կսահմանվեն մուտքի իրավունքները</small>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="StationId" class="form-label">Կայան</label>
+                <select asp-for="StationId" class="form-select">
+                    <option value="">-- Առանց հատկացման --</option>
+                    @foreach (var s in (IEnumerable<GasStationMS.Models.Station>)ViewBag.Stations)
+                    {
+                        <option value="@s.Id">@s.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <hr />
+        <h5>Մուտքի հաշիվ (ոչ պարտադիր)</h5>
+        <p class="text-muted small">Եթե ցանկանում եք, որ աշխատակիցը կարողանա մուտք գործել համակարգ, լրացրեք մուտքի տվյալները։</p>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Էլ․ փոստ</label>
+                <input name="email" type="email" class="form-control" placeholder="employee@example.com" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Գաղտնաբառ</label>
+                <input name="password" type="password" class="form-control" placeholder="Min 8 նիշ, թվով, մեծատառով, սիմվոլով" />
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary">✅ Գրանցել</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Չեղարկել</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

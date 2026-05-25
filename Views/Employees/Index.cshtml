@@ -1,0 +1,72 @@
+@model IEnumerable<GasStationMS.Models.Employee>
+@{ ViewData["Title"] = "Աշխատակիցներ"; }
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h1 style="margin:0;">👥 Աշխատակիցներ</h1>
+    <a asp-action="Create" class="btn btn-primary">+ Նոր աշխատակից</a>
+</div>
+
+<div class="content-card">
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-4">
+            <select name="stationId" class="form-select" onchange="this.form.submit()">
+                <option value="">Բոլոր կայանները</option>
+                @foreach (var s in (IEnumerable<GasStationMS.Models.Station>)ViewBag.Stations)
+                {
+                    <option value="@s.Id" selected="@(ViewBag.SelectedStationId == s.Id)">@s.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-check">
+                <input type="checkbox" name="includeInactive" value="true" class="form-check-input"
+                       @((bool)ViewBag.IncludeInactive ? "checked" : "") onchange="this.form.submit()" />
+                Ցուցադրել ապաակտիվացվածներին
+            </label>
+        </div>
+    </form>
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Ա․Ա․Հ․</th>
+                <th>Պաշտոն</th>
+                <th>Կայան</th>
+                <th>Հեռախոս</th>
+                <th>Էլ․ փոստ</th>
+                <th>Կարգավիճակ</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var e in Model)
+        {
+            <tr>
+                <td><strong>@e.FullName</strong></td>
+                <td>
+                    @switch (e.Role)
+                    {
+                        case GasStationMS.Models.EmployeeRole.Administrator: <span class="badge-soft-danger">Ադմին</span> break;
+                        case GasStationMS.Models.EmployeeRole.NetworkManager: <span class="badge-soft-info">Ցանցի ղեկավար</span> break;
+                        case GasStationMS.Models.EmployeeRole.Manager: <span class="badge-soft-warning">Մենեջեր</span> break;
+                        case GasStationMS.Models.EmployeeRole.Accountant: <span class="badge-soft-info">Հաշվապահ</span> break;
+                        case GasStationMS.Models.EmployeeRole.Operator: <span class="badge-soft-success">Օպերատոր</span> break;
+                    }
+                </td>
+                <td>@e.Station?.Name</td>
+                <td>@e.PhoneNumber</td>
+                <td>@e.Email</td>
+                <td>
+                    @if (e.IsActive) { <span class="badge-soft-success">Ակտիվ</span> }
+                    else { <span class="badge-soft-danger">Ապաակտիվ</span> }
+                </td>
+                <td class="d-flex gap-1">
+                    <a asp-action="Details" asp-route-id="@e.Id" class="btn btn-sm btn-outline-primary">👁</a>
+                    <a asp-action="Edit" asp-route-id="@e.Id" class="btn btn-sm btn-outline-secondary">✏️</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (!Model.Any()) { <p class="text-muted text-center">Աշխատակիցներ չկան։</p> }
+</div>

@@ -1,0 +1,72 @@
+@model GasStationMS.Models.Station
+@{ ViewData["Title"] = Model.Name; }
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <div>
+        <a asp-action="Index" style="color:var(--text-muted); text-decoration:none;">← Բոլոր կայանները</a>
+        <h1 style="margin:4px 0 0;">🏢 @Model.Name</h1>
+    </div>
+    @if (User.IsInRole("Administrator") || User.IsInRole("NetworkManager"))
+    {
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">✏️ Խմբագրել</a>
+    }
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="content-card">
+            <h3>Ընդհանուր տեղեկություններ</h3>
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Հասցե՝</dt><dd class="col-sm-8">@Model.Address</dd>
+                <dt class="col-sm-4">Քաղաք՝</dt><dd class="col-sm-8">@Model.City</dd>
+                <dt class="col-sm-4">Հեռախոս՝</dt><dd class="col-sm-8">@Model.PhoneNumber</dd>
+                <dt class="col-sm-4">Կոորդինատներ՝</dt><dd class="col-sm-8">@Model.Latitude, @Model.Longitude</dd>
+                <dt class="col-sm-4">Կարգավիճակ՝</dt>
+                <dd class="col-sm-8">
+                    @if (Model.Status == GasStationMS.Models.StationStatus.Active)
+                    { <span class="badge-soft-success">Ակտիվ</span> }
+                    else if (Model.Status == GasStationMS.Models.StationStatus.Maintenance)
+                    { <span class="badge-soft-warning">Տեխսպասարկում</span> }
+                    else { <span class="badge-soft-danger">Փակ</span> }
+                </dd>
+                <dt class="col-sm-4">Ստեղծված՝</dt><dd class="col-sm-8">@Model.CreatedAt.ToString("yyyy-MM-dd")</dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="content-card">
+            <h3>Ամփոփ ցուցանիշներ</h3>
+            <div class="row g-2">
+                <div class="col-6"><div class="stat-card primary"><h6>Ռեզերվուարներ</h6><div class="value">@Model.Tanks.Count</div></div></div>
+                <div class="col-6"><div class="stat-card success"><h6>Բենզակոլոնկաներ</h6><div class="value">@Model.Dispensers.Count</div></div></div>
+                <div class="col-6"><div class="stat-card info"><h6>Աշխատակիցներ</h6><div class="value">@Model.Employees.Count(e => e.IsActive)</div></div></div>
+                <div class="col-6"><div class="stat-card warning"><h6>Հերթափոխեր</h6><div class="value">@Model.Shifts.Count</div></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content-card" style="margin-top:20px;">
+    <h3>⛽ Ռեզերվուարներ</h3>
+    @if (Model.Tanks.Any())
+    {
+        <table class="table">
+            <thead><tr><th>Կոդ</th><th>Վառելիք</th><th>Առկա / Տարողություն</th><th>Կարգավիճակ</th></tr></thead>
+            <tbody>
+            @foreach (var t in Model.Tanks)
+            {
+                <tr>
+                    <td><strong>@t.TankCode</strong></td>
+                    <td>@t.FuelType.Name</td>
+                    <td>@t.CurrentVolumeLiters.ToString("N1") / @t.CapacityLiters.ToString("N0") լ (@t.FillPercentage%)</td>
+                    <td>
+                        @if (t.IsLowStock) { <span class="badge-soft-danger">Ցածր</span> }
+                        else { <span class="badge-soft-success">Նորմալ</span> }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+    else { <p class="text-muted">Ռեզերվուարներ դեռ գրանցված չեն։</p> }
+</div>

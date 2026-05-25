@@ -1,0 +1,43 @@
+@model IEnumerable<GasStationMS.ViewModels.SupplierSummaryViewModel>
+@{ ViewData["Title"] = "Մատակարարներ"; }
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h1 style="margin:0;">🏭 Մատակարարներ</h1>
+    <div class="d-flex gap-2">
+        <a asp-action="Report" class="btn btn-outline-primary">📊 Հաշվետվություն</a>
+        <a asp-action="Create" class="btn btn-primary">+ Նոր մատակարար</a>
+    </div>
+</div>
+
+<div class="content-card">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Անուն</th><th>ՀՎՀՀ</th><th>Հեռախոս</th>
+                <th>Մատակարարումներ</th><th>Ընդհ․ ծավալ</th><th>Ընդհ․ գումար</th><th>Վերջին</th><th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td><strong>@item.Supplier.Name</strong></td>
+                <td>@item.Supplier.TaxId</td>
+                <td>@item.Supplier.PhoneNumber</td>
+                <td>@item.DeliveryCount</td>
+                <td>@item.TotalVolume.ToString("N1") լ</td>
+                <td><strong>@item.TotalSpent.ToString("N0") ֏</strong></td>
+                <td>@(item.LastDelivery?.ToString("yyyy-MM-dd") ?? "—")</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Supplier.Id" class="btn btn-sm btn-outline-primary">👁</a>
+                    <a asp-action="Edit" asp-route-id="@item.Supplier.Id" class="btn btn-sm btn-outline-secondary">✏️</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (!Model.Any())
+    {
+        <p class="text-muted text-center">Մատակարարներ չկան։ <a asp-action="Create">Ավելացնել առաջինը</a>։</p>
+    }
+</div>

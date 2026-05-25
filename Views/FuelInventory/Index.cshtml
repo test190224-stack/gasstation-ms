@@ -1,0 +1,86 @@
+@model IEnumerable<GasStationMS.Models.FuelTank>
+@{ ViewData["Title"] = "Վառելիքի պաշարներ"; }
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+    <h1 style="margin:0;">⛽ Վառելիքի պաշարներ</h1>
+    <div class="d-flex gap-2">
+        <a asp-action="LowStock" class="btn btn-outline-warning">⚠️ Ցածր պաշարներ</a>
+        <a asp-controller="Deliveries" asp-action="Create" class="btn btn-outline-primary">🚚 Մատակարարել</a>
+        @if (User.IsInRole("Administrator") || User.IsInRole("NetworkManager") || User.IsInRole("Manager"))
+        {
+            <a asp-controller="FuelTanks" asp-action="Create" class="btn btn-primary">+ Նոր ռեզերվուար</a>
+        }
+    </div>
+</div>
+
+<div class="content-card">
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-4">
+            <select name="stationId" class="form-select" onchange="this.form.submit()">
+                <option value="">Բոլոր կայանները</option>
+                @foreach (var st in (IEnumerable<GasStationMS.Models.Station>)ViewBag.Stations)
+                {
+                    <option value="@st.Id" selected="@(ViewBag.SelectedStationId == st.Id)">@st.Name</option>
+                }
+            </select>
+        </div>
+    </form>
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Կոդ</th>
+                <th>Կայան</th>
+                <th>Վառելիք</th>
+                <th>Առկա / Տարողություն</th>
+                <th>Լիցք</th>
+                <th>Միջին գին/լ (FIFO)</th>
+                <th>Կարգավիճակ</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var t in Model)
+        {
+            var percent = (int)t.FillPercentage;
+            var barColor = t.IsLowStock ? "#ef4444" : (percent < 40 ? "#f59e0b" : "#10b981");
+            <tr>
+                <td><strong>@t.TankCode</strong></td>
+                <td>@t.Station?.Name</td>
+                <td>@t.FuelType?.Name</td>
+                <td>@t.CurrentVolumeLiters.ToString("N1") / @t.CapacityLiters.ToString("N0") լ</td>
+                <td style="min-width:180px;">
+                    <div style="background:#f1f5f9; border-radius:12px; overflow:hidden; height:20px; position:relative;">
+                        <div style="background:@barColor; width:@(percent)%; height:100%;"></div>
+                        <span style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600;">@percent%</span>
+                    </div>
+                </td>
+                <td>
+                    @if (t.WeightedAverageCost > 0)
+                    {
+                        <span>@t.WeightedAverageCost.ToString("N0") ֏</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted">—</span>
+                    }
+                </td>
+                <td>
+                    @if (t.IsLowStock) { <span class="badge-soft-danger">Ցածր</span> }
+                    else { <span class="badge-soft-success">Նորմալ</span> }
+                </td>
+                <td class="d-flex gap-1">
+                    <a asp-controller="Deliveries" asp-action="Create" asp-route-tankId="@t.Id"
+                       class="btn btn-sm btn-outline-primary" title="Մատակարարել">🚚</a>
+                    @if (User.IsInRole("Administrator") || User.IsInRole("NetworkManager") || User.IsInRole("Manager"))
+                    {
+                        <a asp-controller="FuelTanks" asp-action="Edit" asp-route-id="@t.Id"
+                           class="btn btn-sm btn-outline-secondary" title="Խմբագրել">✏️</a>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (!Model.Any()) { <p class="text-muted text-center">Ռեզերվուարներ չկան։</p> }
+</div>

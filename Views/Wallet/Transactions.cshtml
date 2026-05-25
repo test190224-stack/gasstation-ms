@@ -1,0 +1,63 @@
+@model IEnumerable<GasStationMS.Models.FinancialTransaction>
+@{ ViewData["Title"] = "Գործ. պատ."; }
+
+<h1>📋 Ֆինանսական գործարքների պատմություն</h1>
+
+<div class="content-card">
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-2">
+            <input type="date" name="from" value="@(((DateTime)ViewBag.From).ToString("yyyy-MM-dd"))" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="to" value="@(((DateTime)ViewBag.To).ToString("yyyy-MM-dd"))" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <select name="type" class="form-select">
+                <option value="">Բոլոր տեսակները</option>
+                <option value="1">Վաճ. եկամուտ</option>
+                <option value="2">Վառ. գնում</option>
+                <option value="3">Աշ. վարձ</option>
+                <option value="4">Այլ ծախս</option>
+                <option value="5">Այլ եկամուտ</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-outline-primary w-100">Ֆիլտր</button>
+        </div>
+    </form>
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-4"><div class="stat-card success"><h6>Ընդ. Եկամուտ</h6><div class="value">@(((decimal)ViewBag.TotalIncome).ToString("N0")) ֏</div></div></div>
+        <div class="col-md-4"><div class="stat-card danger"><h6>Ընդ. Ծախս</h6><div class="value">@(((decimal)ViewBag.TotalExpense).ToString("N0")) ֏</div></div></div>
+        <div class="col-md-4"><div class="stat-card primary"><h6>Մնացորդ</h6><div class="value">@(((decimal)ViewBag.TotalIncome - (decimal)ViewBag.TotalExpense).ToString("N0")) ֏</div></div></div>
+    </div>
+
+    <table class="table table-hover">
+        <thead>
+            <tr><th>Ամ.</th><th>Տեսակ</th><th>Նկ.</th><th>Կ.</th><th>Աշ.</th><th>Մատ.</th><th>Ref</th><th>Գ.</th><th>↕</th></tr>
+        </thead>
+        <tbody>
+        @foreach (var t in Model)
+        {
+            var isIncome = t.Direction == GasStationMS.Models.TransactionDirection.Income;
+            <tr>
+                <td><small>@t.OccurredAt.ToString("MM-dd HH:mm")</small></td>
+                <td><small>@t.Type.ToString()</small></td>
+                <td>@t.Description</td>
+                <td><small>@t.Station?.Name</small></td>
+                <td><small>@t.Employee?.FullName</small></td>
+                <td><small>@t.Supplier?.Name</small></td>
+                <td><small>@t.Reference</small></td>
+                <td style="color:@(isIncome ? "#10b981" : "#ef4444"); font-weight:600;">
+                    @(isIncome ? "+" : "−")@t.Amount.ToString("N0") ֏
+                </td>
+                <td>
+                    @if (isIncome) { <span class="badge-soft-success">Ե</span> }
+                    else { <span class="badge-soft-danger">Ծ</span> }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (!Model.Any()) { <p class="text-muted text-center">Գործ. չկան ընտրված ֆ-ի համար։</p> }
+</div>

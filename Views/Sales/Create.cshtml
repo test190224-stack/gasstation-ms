@@ -1,0 +1,376 @@
+@model GasStationMS.Models.Sale
+@{
+    ViewData["Title"] = "Վաճ. գրանցում";
+    var dispensers = ViewBag.Dispensers as IEnumerable<GasStationMS.Models.Dispenser>;
+    var fuelTypes = ViewBag.FuelTypes as IEnumerable<GasStationMS.Models.FuelType>;
+}
+
+<div style="display:flex; align-items:center; gap:16px; margin-bottom:24px;">
+    <a asp-action="Index" style="color:var(--text-muted); text-decoration:none; font-size:14px;">← Վ. ցուցակ</a>
+    <h1 style="margin:0;">💰 Նոր վ. գրանցում</h1>
+</div>
+
+<div class="row g-3">
+    <!-- ===== Main form ===== -->
+    <div class="col-lg-8">
+        <form asp-action="Create" method="post" id="saleForm">
+            @Html.AntiForgeryToken()
+
+            <!-- Server-side validation -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <div>⚠️ @err.ErrorMessage</div>
+                    }
+                </div>
+            }
+
+            <!-- Step 1: Dispenser -->
+            <div class="content-card">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span style="background:var(--primary); color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700;">1</span>
+                    <h5 style="margin:0;">Բ-կ. ընտրություն</h5>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-7">
+                        <label class="form-label">Բ-կ. <span class="text-danger">*</span></label>
+                        <select asp-for="DispenserId" id="dispenserSelect" class="form-select">
+                            <option value="">-- Ընտ. բ-կ. --</option>
+                            @if (dispensers != null)
+                            {
+                                foreach (var d in dispensers)
+                                {
+                                    <option value="@d.Id">
+                                        @d.DispenserCode — @d.Station?.Name — @d.FuelTank?.FuelType?.Name
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">Ռ. վ.</label>
+                        <div id="tankStatus" style="padding:10px 14px; background:#f8fafc; border:1.5px solid #e5e7eb; border-radius:8px; font-size:14px; color:#6b7280; min-height:44px;">
+                            Ընտ. բ-կ.
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" asp-for="FuelTypeId" id="fuelTypeId" />
+            </div>
+
+            <!-- Step 2: Volume & Price -->
+            <div class="content-card">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span style="background:var(--primary); color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700;">2</span>
+                    <h5 style="margin:0;">Ծ. & Գ.</h5>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Ծ. (լ.) <span class="text-danger">*</span></label>
+                        <input asp-for="VolumeLiters" id="volume" type="number" step="0.01" min="0.01"
+                               class="form-control" style="font-size:20px; font-weight:600;" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Գ./լ. (֏)</label>
+                        <input asp-for="PricePerLiter" id="price" type="number" step="0.01"
+                               class="form-control" style="font-size:20px;" />
+                        <small class="text-muted">0 = ավ. cost+markup</small>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Ընդ. (֏)</label>
+                        <div id="totalDisplay" style="padding:10px 14px; background:#f0f9ff; border:1.5px solid #667eea; border-radius:8px; font-size:22px; font-weight:700; color:var(--primary); text-align:center; min-height:46px;">
+                            0 ֏
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Վ.Ե.</label>
+                    <div class="d-flex gap-2 flex-wrap">
+                        @foreach (var (val, label) in new[] { ("1","💵 Կ."), ("2","💳 Կ."), ("3","🎫 Կ."), ("4","🏢 Կ.") })
+                        {
+                            <label class="d-flex align-items-center gap-1 p-2" style="border:1.5px solid #e5e7eb; border-radius:8px; cursor:pointer; min-width:90px;">
+                                <input type="radio" name="PaymentMethod" value="@val" class="form-check-input" style="margin:0;" />
+                                @label
+                            </label>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Discount (coupon OR loyalty) -->
+            <div class="content-card">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span style="background:var(--accent); color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700;">3</span>
+                    <h5 style="margin:0;">Ζ. (ոչ պ.)</h5>
+                </div>
+                <p class="small text-muted mb-3">⚠️ Ընտ. <strong>կամ</strong> կ. <strong>կամ</strong> loyalty — ոչ 2-ը։</p>
+
+                <div class="row">
+                    <!-- Coupon column -->
+                    <div class="col-md-6">
+                        <div id="couponSection" style="border:1.5px solid #e5e7eb; border-radius:10px; padding:16px;">
+                            <div style="font-weight:600; margin-bottom:8px;">🎫 Կ. կ.</div>
+                            <input name="couponCode" id="couponInput" class="form-control" placeholder="CPN-XXXXX"
+                                   autocomplete="off" />
+                            <div id="couponResult" style="margin-top:8px; font-size:13px; min-height:20px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Customer card column -->
+                    <div class="col-md-6">
+                        <div id="cardSection" style="border:1.5px solid #e5e7eb; border-radius:10px; padding:16px;">
+                            <div style="font-weight:600; margin-bottom:8px;">💎 Loyalty Կ.</div>
+                            <input name="customerCardCode" id="cardInput" class="form-control" placeholder="CARD-00001"
+                                   autocomplete="off" />
+                            <div id="cardResult" style="margin-top:8px; font-size:13px; min-height:20px;"></div>
+                            <div id="pointsSection" style="display:none; margin-top:10px;">
+                                <label class="form-label small">Ε.Ε. (1 մ. = 1 ֏)</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input name="pointsToUse" id="pointsToUse" type="range" min="0" max="0"
+                                           value="0" class="form-range" style="flex:1;" />
+                                    <span id="pointsLabel" style="min-width:80px; text-align:right; font-weight:600;">0 ֏</span>
+                                </div>
+                                <small id="pointsMax" class="text-muted"></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live discount summary -->
+                <div id="discountSummary" style="display:none; margin-top:12px; padding:12px; background:#f0fdf4; border-radius:8px; border:1px solid #10b981;">
+                    <div style="display:flex; justify-content:space-between; font-size:15px;">
+                        <span>Ζ.:</span><span id="discountAmt" style="color:#10b981; font-weight:700;"></span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:18px; font-weight:700; margin-top:4px;">
+                        <span>Վ.:</span><span id="finalAmt" style="color:var(--primary);"></span>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn btn-primary btn-lg w-100">
+                ✅ Գ. վ.
+            </button>
+        </form>
+    </div>
+
+    <!-- Receipt preview -->
+    <div class="col-lg-4">
+        <div class="content-card" style="position:sticky; top:90px;">
+            <h5>🧾 Չ. preview</h5>
+            <div id="receiptPreview" style="font-family:monospace; font-size:13px; background:#f8fafc; padding:16px; border-radius:8px; line-height:2;">
+                <div>⛽ GasStation MS</div>
+                <hr style="border-style:dashed;" />
+                <div id="r_dispenser">Բ-կ: —</div>
+                <div id="r_fuel">Վ: —</div>
+                <div id="r_volume">Ծ: —</div>
+                <div id="r_price">Գ/լ: —</div>
+                <hr style="border-style:dashed;" />
+                <div id="r_total" style="font-size:16px; font-weight:700;">ԸՆԴԱՄ: 0 ֏</div>
+                <div id="r_discount" style="display:none; color:#10b981;">ΖΕ: —</div>
+                <div id="r_final" style="display:none; font-size:18px; font-weight:700; color:var(--primary);">ՎՃAR: —</div>
+                <hr style="border-style:dashed;" />
+                <div style="color:#6b7280; font-size:11px;">@DateTime.Now.ToString("yyyy-MM-dd HH:mm")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+<script>
+const dispSel = document.getElementById('dispenserSelect');
+const volInp  = document.getElementById('volume');
+const priInp  = document.getElementById('price');
+const ftId    = document.getElementById('fuelTypeId');
+const coupon  = document.getElementById('couponInput');
+const card    = document.getElementById('cardInput');
+const points  = document.getElementById('pointsToUse');
+let dispenserData = null, customerData = null, couponData = null;
+
+// ===== helpers =====
+function fmt(n) { return Number(n).toLocaleString('hy-AM', {maximumFractionDigits:0}) + ' ֏'; }
+function getVol()   { return parseFloat(volInp.value) || 0; }
+function getPri()   { return parseFloat(priInp.value) || 0; }
+function getTotal() { return getVol() * getPri(); }
+function getDiscount() {
+    if (couponData)   return computeCouponDiscount();
+    if (customerData) return parseInt(points?.value || 0);
+    return 0;
+}
+function computeCouponDiscount() {
+    if (!couponData) return 0;
+    const total = getTotal();
+    if (couponData.type === 3) return total * (couponData.discountPct / 100); // percent
+    if (couponData.type === 2) return Math.min(couponData.faceValue, total);  // prepaid amount
+    if (couponData.type === 1) return 0; // prepaid volume — no ֏ discount
+    return 0;
+}
+
+// ===== update receipt =====
+function refresh() {
+    const vol = getVol(); const pri = getPri();
+    const total = vol * pri;
+    const disc = getDiscount();
+    const final = total - disc;
+
+    document.getElementById('totalDisplay').textContent = fmt(total);
+    document.getElementById('r_volume').textContent = `Ծ: ${vol.toFixed(2)} լ`;
+    document.getElementById('r_price').textContent  = `Գ/լ: ${fmt(pri)}`;
+    document.getElementById('r_total').textContent  = `ԸՆԴԱՄ: ${fmt(total)}`;
+
+    if (dispenserData) {
+        document.getElementById('r_dispenser').textContent = `Բ-կ: ${dispenserData.code || ''}`;
+        document.getElementById('r_fuel').textContent = `Վ: ${dispenserData.fuelTypeName}`;
+    }
+
+    if (disc > 0) {
+        document.getElementById('discountSummary').style.display = 'block';
+        document.getElementById('discountAmt').textContent = '−' + fmt(disc);
+        document.getElementById('finalAmt').textContent = fmt(final);
+        document.getElementById('r_discount').style.display = 'block';
+        document.getElementById('r_discount').textContent = `ΖΕ: −${fmt(disc)}`;
+        document.getElementById('r_final').style.display = 'block';
+        document.getElementById('r_final').textContent = `ՎՃAR: ${fmt(final)}`;
+    } else {
+        document.getElementById('discountSummary').style.display = 'none';
+        document.getElementById('r_discount').style.display = 'none';
+        document.getElementById('r_final').style.display = 'none';
+    }
+}
+
+// ===== Dispenser change =====
+dispSel.addEventListener('change', async function() {
+    if (!this.value) return;
+    const ts = document.getElementById('tankStatus');
+    ts.innerHTML = '<span style="color:#6b7280;">Բ...</span>';
+    try {
+        const res = await fetch('/Sales/GetDispenserInfo?id=' + this.value);
+        dispenserData = await res.json();
+        if (dispenserData) {
+            dispenserData.code = this.options[this.selectedIndex].textContent.split('—')[0].trim();
+            ftId.value = dispenserData.fuelTypeId;
+            if (!priInp.value || priInp.value === '0') priInp.value = dispenserData.price;
+            const pct = (dispenserData.availableLiters / dispenserData.capacity * 100).toFixed(0);
+            const color = pct < 15 ? '#ef4444' : pct < 40 ? '#f59e0b' : '#10b981';
+            ts.innerHTML = `<div style="font-weight:600; color:#1a1a2e;">${dispenserData.fuelTypeName}</div>
+                <div style="margin-top:4px; background:#f1f5f9; border-radius:8px; height:8px;">
+                  <div style="background:${color}; width:${pct}%; height:100%; border-radius:8px;"></div>
+                </div>
+                <div style="font-size:12px; margin-top:2px; color:#6b7280;">
+                  ${dispenserData.availableLiters.toFixed(0)} / ${dispenserData.capacity.toFixed(0)} լ (${pct}%)
+                </div>`;
+        }
+    } catch(e) { ts.textContent = 'Σ.'; showToast('danger', 'Β-κ. σ.'); }
+    refresh();
+});
+
+volInp.addEventListener('input', refresh);
+priInp.addEventListener('input', refresh);
+
+// ===== Coupon validation (live, 400ms debounce) =====
+let couponTimer = null;
+coupon.addEventListener('input', function() {
+    clearTimeout(couponTimer);
+    couponData = null;
+    const res = document.getElementById('couponResult');
+    if (!this.value.trim()) { res.innerHTML = ''; refresh(); return; }
+    res.innerHTML = '<span style="color:#6b7280;">⏳ Ω...</span>';
+    // Clear card if coupon is being typed
+    card.value = ''; customerData = null;
+    document.getElementById('cardResult').innerHTML = '';
+    document.getElementById('pointsSection').style.display = 'none';
+    document.getElementById('cardSection').style.border = '1.5px solid #e5e7eb';
+
+    couponTimer = setTimeout(async () => {
+        try {
+            const r = await fetch('/Sales/ValidateCoupon?code=' + encodeURIComponent(this.value.trim()));
+            const d = await r.json();
+            if (d.valid) {
+                couponData = d;
+                const labels = {1:'Ε. Ψ.', 2:'Εκ. Φ.', 3:'% Ζ.'};
+                res.innerHTML = `<span style="color:#10b981;">✅ ${labels[d.type] || ''}: <strong>${d.summary}</strong></span>`;
+                document.getElementById('couponSection').style.border = '1.5px solid #10b981';
+            } else {
+                res.innerHTML = `<span style="color:#ef4444;">❌ ${d.message || 'Ε. κ.'}</span>`;
+                document.getElementById('couponSection').style.border = '1.5px solid #ef4444';
+            }
+        } catch(e) { res.innerHTML = '<span style="color:#ef4444;">Σ.</span>'; }
+        refresh();
+    }, 400);
+});
+
+// ===== Customer card lookup (live) =====
+let cardTimer = null;
+card.addEventListener('input', function() {
+    clearTimeout(cardTimer);
+    customerData = null;
+    const res = document.getElementById('cardResult');
+    document.getElementById('pointsSection').style.display = 'none';
+    if (!this.value.trim()) { res.innerHTML = ''; refresh(); return; }
+    res.innerHTML = '<span style="color:#6b7280;">⏳ Ω...</span>';
+    // Clear coupon if card being typed
+    coupon.value = ''; couponData = null;
+    document.getElementById('couponResult').innerHTML = '';
+    document.getElementById('couponSection').style.border = '1.5px solid #e5e7eb';
+
+    cardTimer = setTimeout(async () => {
+        try {
+            const r = await fetch('/Sales/LookupCustomer?code=' + encodeURIComponent(this.value.trim()));
+            const d = await r.json();
+            if (d.found) {
+                customerData = d;
+                const tierColors = { Bronze:'#cd7f32', Silver:'#c0c0c0', Gold:'#ffd700', Platinum:'#e5e4e2' };
+                const tc = tierColors[d.tier] || '#ddd';
+                res.innerHTML = `<div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+                    <strong>${d.name}</strong>
+                    <span style="background:${tc}; color:#333; padding:2px 10px; border-radius:10px; font-size:11px;">${d.tier}</span>
+                    <span style="color:#667eea; font-size:12px;">💎 ${d.points} մ. | ${d.cashback}% cashback</span>
+                </div>`;
+                document.getElementById('cardSection').style.border = '1.5px solid #10b981';
+                if (d.points > 0) {
+                    document.getElementById('pointsSection').style.display = 'block';
+                    points.max = Math.min(d.points, Math.floor(getTotal()));
+                    points.value = 0;
+                    document.getElementById('pointsMax').textContent = `Ε.: ${d.points} մ.`;
+                }
+            } else {
+                res.innerHTML = `<span style="color:#ef4444;">❌ Κ. σ. (${this.value})</span>`;
+                document.getElementById('cardSection').style.border = '1.5px solid #ef4444';
+            }
+        } catch(e) { res.innerHTML = '<span style="color:#ef4444;">Σ.</span>'; }
+        refresh();
+    }, 400);
+});
+
+// Points slider
+points?.addEventListener('input', function() {
+    document.getElementById('pointsLabel').textContent = fmt(this.value);
+    refresh();
+});
+
+// Update points max when volume/price changes
+function updatePointsMax() {
+    if (customerData && points) {
+        points.max = Math.min(customerData.points, Math.floor(getTotal()));
+        if (parseInt(points.value) > parseInt(points.max)) points.value = points.max;
+        document.getElementById('pointsLabel').textContent = fmt(points.value);
+    }
+}
+volInp.addEventListener('input', updatePointsMax);
+priInp.addEventListener('input', updatePointsMax);
+
+// Mutual exclusion visual
+coupon.addEventListener('focus', () => {
+    document.getElementById('couponSection').style.background = '#f0fdf4';
+});
+card.addEventListener('focus', () => {
+    document.getElementById('cardSection').style.background = '#f0fdf4';
+});
+
+refresh();
+</script>
+}

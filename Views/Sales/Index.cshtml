@@ -1,0 +1,47 @@
+@model IEnumerable<GasStationMS.Models.Sale>
+@{ ViewData["Title"] = "Վաճառքներ"; }
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+    <h1 style="margin:0;">💰 Վաճառքներ</h1>
+    <a asp-action="Create" class="btn btn-primary">+ Նոր վաճառք</a>
+</div>
+
+<div class="content-card">
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-3">
+            <label class="form-label" style="font-size:13px;">Սկիզբ</label>
+            <input type="date" name="from" value="@(((DateTime)ViewBag.From).ToString("yyyy-MM-dd"))" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" style="font-size:13px;">Ավարտ</label>
+            <input type="date" name="to" value="@(((DateTime)ViewBag.To).ToString("yyyy-MM-dd"))" class="form-control" />
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-outline-primary w-100">Ֆիլտր</button>
+        </div>
+    </form>
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Չեկ N</th><th>Ամսաթիվ</th><th>Կայան</th><th>Վառելիք</th>
+                <th>Ծավալ</th><th>Գումար</th><th>Վճարում</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var s in Model)
+        {
+            <tr>
+                <td><small><code>@s.ReceiptNumber</code></small></td>
+                <td>@s.SoldAt.ToString("MM-dd HH:mm")</td>
+                <td>@s.Station?.Name</td>
+                <td>@s.FuelType?.Name</td>
+                <td>@s.VolumeLiters.ToString("N2") լ</td>
+                <td><strong>@s.NetAmount.ToString("N0") ֏</strong></td>
+                <td><small>@s.PaymentMethod</small></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (!Model.Any()) { <p class="text-muted text-center">Տվյալ ժամանակահատվածում վաճառքներ չկան։</p> }
+</div>

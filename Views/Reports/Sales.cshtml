@@ -1,0 +1,34 @@
+@model GasStationMS.ViewModels.SalesReportViewModel
+@{ ViewData["Title"] = "Վաճառքների հաշվետվություն"; }
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h1 style="margin:0;">📈 Վաճառքների հաշվետվություն</h1>
+    <a asp-action="ExportSalesExcel" asp-route-from="@Model.From.ToString("yyyy-MM-dd")" asp-route-to="@Model.To.ToString("yyyy-MM-dd")" class="btn btn-success">📥 Excel-ի արտահանում</a>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-4"><div class="stat-card primary"><h6>Ընդհանուր մուտք</h6><div class="value">@Model.TotalAmount.ToString("N0") ֏</div></div></div>
+    <div class="col-md-4"><div class="stat-card success"><h6>Վաճառված ծավալ</h6><div class="value">@Model.TotalVolume.ToString("N1") լ</div></div></div>
+    <div class="col-md-4"><div class="stat-card info"><h6>Գործարքներ</h6><div class="value">@Model.Sales.Count</div></div></div>
+</div>
+
+<div class="content-card">
+    <p class="text-muted">@Model.From.ToString("yyyy-MM-dd") – @Model.To.ToString("yyyy-MM-dd")</p>
+    <table class="table table-hover">
+        <thead><tr><th>Չեկ N</th><th>Ամսաթիվ</th><th>Կայան</th><th>Վառելիք</th><th>Ծավալ</th><th>Գումար</th></tr></thead>
+        <tbody>
+        @foreach (var s in Model.Sales.Take(200))
+        {
+            <tr>
+                <td><small><code>@s.ReceiptNumber</code></small></td>
+                <td>@s.SoldAt.ToString("MM-dd HH:mm")</td>
+                <td>@s.Station?.Name</td>
+                <td>@s.FuelType?.Name</td>
+                <td>@s.VolumeLiters.ToString("N2") լ</td>
+                <td><strong>@s.NetAmount.ToString("N0") ֏</strong></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (Model.Sales.Count > 200) { <p class="text-muted">Ցուցադրված են առաջին 200 արդյունքները։ Ամբողջ ցուցակը՝ Excel-ի արտահանումով։</p> }
+</div>

@@ -1,0 +1,246 @@
+@model GasStationMS.ViewModels.WalletViewModel
+@{ ViewData["Title"] = "Ֆինանսական Wallet"; }
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+    <h1 style="margin:0;">💼 Ֆինանսական Wallet</h1>
+    <div class="d-flex gap-2">
+        <a asp-action="Transactions" class="btn btn-outline-primary">📋 Գործարքների պատմություն</a>
+        <a asp-action="PaySalary" class="btn btn-outline-warning">💸 Կատ. աշ. վարձ</a>
+        <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#expenseModal">+ Ծախս</button>
+    </div>
+</div>
+
+<!-- Date filter -->
+<div class="content-card" style="padding: 16px 24px; margin-bottom: 20px;">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label" style="font-size:13px; font-weight:600;">Սկիզբ</label>
+            <input type="date" name="from" value="@Model.From.ToString("yyyy-MM-dd")" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" style="font-size:13px; font-weight:600;">Ավարտ</label>
+            <input type="date" name="to" value="@Model.To.ToString("yyyy-MM-dd")" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" style="font-size:13px; font-weight:600;">Կայան</label>
+            <select name="stationId" class="form-select">
+                <option value="">Բոլոր կայանները</option>
+                @foreach (var s in (IEnumerable<GasStationMS.Models.Station>)ViewBag.Stations)
+                {
+                    <option value="@s.Id" selected="@(ViewBag.SelectedStationId == s.Id)">@s.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">🔍 Ֆիլտր</button>
+        </div>
+        <div class="col-md-1">
+            <!-- Shortcuts -->
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary w-100" data-bs-toggle="dropdown">⚡</button>
+                <ul class="dropdown-menu">
+                    @{
+                        var today = DateTime.Today;
+                        var m1 = new DateTime(today.Year, today.Month, 1);
+                        var m3 = today.AddMonths(-3);
+                    }
+                    <li><a class="dropdown-item" href="?from=@today.ToString("yyyy-MM-dd")&to=@today.AddDays(1).ToString("yyyy-MM-dd")">Այսօր</a></li>
+                    <li><a class="dropdown-item" href="?from=@today.AddDays(-7).ToString("yyyy-MM-dd")&to=@today.AddDays(1).ToString("yyyy-MM-dd")">Վերջ. 7 օր</a></li>
+                    <li><a class="dropdown-item" href="?from=@m1.ToString("yyyy-MM-dd")&to=@today.AddDays(1).ToString("yyyy-MM-dd")">Այս ամիս</a></li>
+                    <li><a class="dropdown-item" href="?from=@m3.ToString("yyyy-MM-dd")&to=@today.AddDays(1).ToString("yyyy-MM-dd")">3 ամիս</a></li>
+                </ul>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- KPI Summary -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2 col-sm-4">
+        <div class="stat-card success"><h6>Եկամուտ</h6><div class="value" style="font-size:20px;">@Model.TotalRevenue.ToString("N0") ֏</div></div>
+    </div>
+    <div class="col-md-2 col-sm-4">
+        <div class="stat-card danger"><h6>Վառ. գնում</h6><div class="value" style="font-size:20px;">@Model.TotalFuelCost.ToString("N0") ֏</div></div>
+    </div>
+    <div class="col-md-2 col-sm-4">
+        <div class="stat-card warning"><h6>Աշ. վարձ</h6><div class="value" style="font-size:20px;">@Model.TotalSalaries.ToString("N0") ֏</div></div>
+    </div>
+    <div class="col-md-2 col-sm-4">
+        <div class="stat-card info"><h6>Այլ ծախսեր</h6><div class="value" style="font-size:20px;">@Model.TotalOtherExpenses.ToString("N0") ֏</div></div>
+    </div>
+    <div class="col-md-2 col-sm-4">
+        <div class="stat-card primary"><h6>Brutto շահ.</h6><div class="value" style="font-size:20px;">@Model.GrossProfit.ToString("N0") ֏</div></div>
+    </div>
+    <div class="col-md-2 col-sm-4">
+        <div class="stat-card @(Model.NetProfit >= 0 ? "success" : "danger")">
+            <h6>Net շահ. (@Model.ProfitMarginPct%)</h6>
+            <div class="value" style="font-size:20px; color:@(Model.NetProfit >= 0 ? "#10b981" : "#ef4444")">
+                @Model.NetProfit.ToString("N0") ֏
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- P&L Statement -->
+<div class="row g-3">
+    <div class="col-md-5">
+        <div class="content-card">
+            <h4>📊 Ֆինանսական ամփոփ (P&L)</h4>
+            <table class="table table-sm mb-0">
+                <tbody>
+                    <tr style="background:#f0fdf4;">
+                        <td><strong>✅ Ընդհ. եկամուտ</strong></td>
+                        <td class="text-end"><strong style="color:#10b981;">@Model.TotalRevenue.ToString("N0") ֏</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="padding-left:20px;">Դ Վառելիքի ծախս</td>
+                        <td class="text-end" style="color:#ef4444;">- @Model.TotalFuelCost.ToString("N0") ֏</td>
+                    </tr>
+                    <tr style="background:#f0fdf4; font-weight:600;">
+                        <td><strong>= Gross Profit</strong></td>
+                        <td class="text-end"><strong style="color:#10b981;">@Model.GrossProfit.ToString("N0") ֏</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="padding-left:20px;">Դ Աշ. վարձ</td>
+                        <td class="text-end" style="color:#f59e0b;">- @Model.TotalSalaries.ToString("N0") ֏</td>
+                    </tr>
+                    <tr>
+                        <td style="padding-left:20px;">Դ Այլ ծախսեր</td>
+                        <td class="text-end" style="color:#8b5cf6;">- @Model.TotalOtherExpenses.ToString("N0") ֏</td>
+                    </tr>
+                    <tr>
+                        <td style="padding-left:20px;">Դ Զեղչեր</td>
+                        <td class="text-end" style="color:#3b82f6;">- @Model.TotalDiscounts.ToString("N0") ֏</td>
+                    </tr>
+                    <tr style="background:@(Model.NetProfit >= 0 ? "#f0fdf4" : "#fef2f2"); font-size:16px;">
+                        <td><strong>= Net Profit</strong></td>
+                        <td class="text-end"><strong style="color:@(Model.NetProfit >= 0 ? "#10b981" : "#ef4444")">@Model.NetProfit.ToString("N0") ֏</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="content-card">
+            <h4>🥧 Ծախսերի կառուցվածք</h4>
+            <canvas id="expenseChart" style="max-height:220px;"></canvas>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="content-card">
+            <h4>📅 Ամսական դինամիկա</h4>
+            <canvas id="monthlyChart" style="max-height:280px;"></canvas>
+        </div>
+
+        @if (Model.SalaryEntries.Any())
+        {
+            <div class="content-card">
+                <h4>💸 Վճարված աշ. վարձ</h4>
+                <table class="table table-sm">
+                    <thead><tr><th>Աշխ.</th><th>Դեր</th><th>Գումար</th><th>Ամս.</th><th>Հ/ն</th></tr></thead>
+                    <tbody>
+                    @foreach (var s in Model.SalaryEntries)
+                    {
+                        <tr>
+                            <td>@s.EmployeeName</td>
+                            <td><small>@s.Role</small></td>
+                            <td><strong>@s.Amount.ToString("N0") ֏</strong></td>
+                            <td>@s.PaidAt.ToString("yyyy-MM-dd")</td>
+                            <td><small>@s.Reference</small></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Add Expense Modal -->
+<div class="modal fade" id="expenseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">+ Ծախս գրանցել</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="AddExpense" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Նկարագիր <span class="text-danger">*</span></label>
+                        <input name="description" class="form-control" required placeholder="Օր․ Կայանի հոսանք, Սպ. ծախս..." />
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Գումար (֏) <span class="text-danger">*</span></label>
+                            <input name="amount" type="number" step="0.01" min="1" class="form-control" required />
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Կայան</label>
+                            <select name="stationId" class="form-select">
+                                <option value="">Ընդհ.</option>
+                                @foreach (var s in (IEnumerable<GasStationMS.Models.Station>)ViewBag.Stations)
+                                {
+                                    <option value="@s.Id">@s.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Ամսաթիվ</label>
+                            <input name="occuredAt" type="datetime-local" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Հ/ն (Reference)</label>
+                            <input name="reference" class="form-control" placeholder="Օր․ #INV-2026" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Չեղ.</button>
+                    <button type="submit" class="btn btn-success">✅ Գրանցել</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Expense pie
+        const expenses = @Html.Raw(Json.Serialize(Model.ExpenseBreakdown));
+        const filtered = expenses.filter(e => e.amount > 0);
+        if (filtered.length > 0) {
+            new Chart(document.getElementById('expenseChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: filtered.map(e => e.category),
+                    datasets: [{ data: filtered.map(e => e.amount), backgroundColor: filtered.map(e => e.color) }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } } }
+            });
+        }
+
+        // Monthly revenue vs expense bar
+        const monthly = @Html.Raw(Json.Serialize(Model.MonthlySummaries));
+        if (monthly.length > 0) {
+            new Chart(document.getElementById('monthlyChart'), {
+                type: 'bar',
+                data: {
+                    labels: monthly.map(m => m.month),
+                    datasets: [
+                        { label: 'Եկամուտ', data: monthly.map(m => m.revenue), backgroundColor: '#10b981' },
+                        { label: 'Ծախս', data: monthly.map(m => m.expenses), backgroundColor: '#ef4444' },
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+    </script>
+}

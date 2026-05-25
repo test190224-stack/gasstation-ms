@@ -1,0 +1,245 @@
+@model GasStationMS.Controllers.LoginViewModel
+@{
+    ViewData["Title"] = "Մուտք";
+    Layout = "_LoginLayout";
+}
+
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="22" x2="15" y2="22"></line>
+                    <line x1="4" y1="9" x2="14" y2="9"></line>
+                    <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"></path>
+                    <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"></path>
+                </svg>
+            </div>
+            <h1>GasStation MS</h1>
+            <p>Բենզալցակայանների ցանցի կառավարման համակարգ</p>
+        </div>
+
+        <form asp-action="Login" method="post" class="login-form">
+            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="form-group">
+                <label asp-for="Email"></label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    <input asp-for="Email" type="email" placeholder="admin@gasstation.am" autocomplete="email" autofocus />
+                </div>
+                <span asp-validation-for="Email" class="field-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password"></label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <input asp-for="Password" type="password" placeholder="••••••••" autocomplete="current-password" />
+                </div>
+                <span asp-validation-for="Password" class="field-error"></span>
+            </div>
+
+            <div class="form-group-inline">
+                <label class="checkbox-label">
+                    <input asp-for="RememberMe" type="checkbox" />
+                    <span>Հիշել ինձ</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn-login">Մուտք գործել</button>
+
+            <div class="login-hint">
+                <strong>Փորձարկման հաշիվ՝</strong><br />
+                admin@gasstation.am / Admin@12345
+            </div>
+        </form>
+    </div>
+
+    <div class="login-footer">
+        &copy; @DateTime.Now.Year — GasStation Management System
+    </div>
+</div>
+
+<style>
+    body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .login-wrapper {
+        width: 100%;
+        max-width: 420px;
+    }
+
+    .login-card {
+        background: white;
+        border-radius: 16px;
+        padding: 40px 35px 30px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .login-logo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 72px;
+        height: 72px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        margin-bottom: 16px;
+    }
+
+    .login-header h1 {
+        margin: 0 0 4px;
+        font-size: 28px;
+        font-weight: 700;
+        color: #1a1a2e;
+    }
+
+    .login-header p {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+    }
+
+    .login-form .form-group {
+        margin-bottom: 20px;
+    }
+
+    .login-form label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #999;
+    }
+
+    .input-wrapper input {
+        width: 100%;
+        padding: 12px 14px 12px 44px;
+        border: 1.5px solid #e1e1e6;
+        border-radius: 8px;
+        font-size: 15px;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .input-wrapper input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    }
+
+    .field-error {
+        display: block;
+        margin-top: 4px;
+        font-size: 12px;
+        color: #dc3545;
+    }
+
+    .form-group-inline {
+        margin-bottom: 24px;
+    }
+
+    .checkbox-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #555;
+    }
+
+    .checkbox-label input {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    .btn-login {
+        width: 100%;
+        padding: 13px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-login:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-login:active {
+        transform: translateY(0);
+    }
+
+    .login-hint {
+        margin-top: 24px;
+        padding: 12px;
+        background: #f8f9fc;
+        border-radius: 8px;
+        font-size: 12px;
+        color: #666;
+        text-align: center;
+        line-height: 1.6;
+    }
+
+    .alert-danger {
+        padding: 10px 14px;
+        margin-bottom: 16px;
+        background: #fdeaea;
+        border: 1px solid #f5c6cb;
+        border-radius: 8px;
+        color: #721c24;
+        font-size: 14px;
+    }
+
+    .login-footer {
+        text-align: center;
+        margin-top: 24px;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 13px;
+    }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

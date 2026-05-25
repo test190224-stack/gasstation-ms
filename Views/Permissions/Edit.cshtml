@@ -1,0 +1,53 @@
+@{
+    ViewData["Title"] = "Կ. Խ.";
+    var emp = ViewBag.Employee as GasStationMS.Models.Employee;
+    var currentPerms = ViewBag.CurrentPerms as List<string> ?? new();
+    var roleDefaults = ViewBag.RoleDefaults as System.Collections.Generic.HashSet<string> ?? new();
+    var allPerms = ViewBag.AllPermissions as (string Key, string Label, string Group)[];
+}
+
+<h1>🔑 @emp?.FullName — Իրավ. կ.</h1>
+
+<div class="content-card" style="max-width: 780px;">
+    <div class="alert alert-info">
+        <strong>Ռոլ՝ @emp?.Role</strong> — ռոլի կանխ. իրավ.ները նշված են <span style="background:#dbeafe; padding:2px 6px; border-radius:4px;">🔵</span>-ով։
+        Կարող ես ավ. կամ հան. ռոլի լռ. իրավ.ից։
+    </div>
+
+    <form asp-action="Edit" asp-route-id="@emp?.Id" method="post">
+        @Html.AntiForgeryToken()
+
+        @if (allPerms != null)
+        {
+            var groups = allPerms.Select(p => p.Group).Distinct().ToList();
+            foreach (var group in groups)
+            {
+                <h6 style="margin-top:20px; color:var(--text-muted); text-transform:uppercase; font-size:12px; letter-spacing:0.05em;">@group</h6>
+                <div class="row g-2 mb-2">
+                    @foreach (var perm in allPerms.Where(p => p.Group == group))
+                    {
+                        var isDefault = roleDefaults.Contains(perm.Key);
+                        var isGranted = currentPerms.Contains(perm.Key);
+                        <div class="col-md-6">
+                            <label class="d-flex align-items-center gap-2 p-2 rounded"
+                                   style="background:@(isGranted ? "#f0fdf4" : "#fafafa"); border:1px solid @(isGranted ? "#10b981" : "#e5e7eb"); cursor:pointer;">
+                                <input type="checkbox" name="granted" value="@perm.Key"
+                                       @(isGranted ? "checked" : "") class="form-check-input" style="margin:0;" />
+                                <span>@perm.Label</span>
+                                @if (isDefault)
+                                {
+                                    <span style="margin-left:auto; background:#dbeafe; color:#1e40af; padding:1px 6px; border-radius:8px; font-size:11px;">ռոլի կ.</span>
+                                }
+                            </label>
+                        </div>
+                    }
+                </div>
+            }
+        }
+
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary">💾 Պ.</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Չ.</a>
+        </div>
+    </form>
+</div>

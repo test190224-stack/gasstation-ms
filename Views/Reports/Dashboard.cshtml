@@ -1,0 +1,245 @@
+@model GasStationMS.ViewModels.DashboardViewModel
+@{ ViewData["Title"] = "Վերլուծություն"; }
+
+<h1>📈 Գործունեության ցուցանիշներ</h1>
+<p class="text-muted">@ViewBag.From.ToString("yyyy-MM-dd") – @ViewBag.To.ToString("yyyy-MM-dd")</p>
+
+<!-- ======= KPI Stats ======= -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6"><div class="stat-card primary"><h6>Մուտք</h6><div class="value">@Model.TotalRevenue.ToString("N0") ֏</div></div></div>
+    <div class="col-md-3 col-sm-6"><div class="stat-card success"><h6>Շահույթ</h6><div class="value">@Model.TotalProfit.ToString("N0") ֏</div></div></div>
+    <div class="col-md-3 col-sm-6"><div class="stat-card info"><h6>Վաճ․ ծավալ</h6><div class="value">@Model.TotalVolume.ToString("N1") լ</div></div></div>
+    <div class="col-md-3 col-sm-6"><div class="stat-card warning"><h6>Գործարքներ</h6><div class="value">@Model.TransactionCount</div></div></div>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6"><div class="stat-card @(Model.LowStockTankCount > 0 ? "danger" : "success")"><h6>Ցածր պաշարներ</h6><div class="value">@Model.LowStockTankCount</div></div></div>
+    <div class="col-md-3 col-sm-6"><div class="stat-card info"><h6>Առկա վառելիք</h6><div class="value">@Model.CurrentFuelVolume.ToString("N0") լ</div></div></div>
+    <div class="col-md-3 col-sm-6"><div class="stat-card primary"><h6>Հաճախորդներ</h6><div class="value">@Model.CustomerCount</div></div></div>
+    <div class="col-md-3 col-sm-6"><div class="stat-card warning"><h6>Ակտիվ կտրոններ</h6><div class="value">@Model.ActiveCouponCount</div></div></div>
+</div>
+
+<!-- ======= Chart Row 1: Daily trend + Fuel types ======= -->
+<div class="row g-3">
+    <div class="col-md-7">
+        <div class="content-card">
+            <h4>📅 Օրական մուտքի դինամիկա</h4>
+            <canvas id="dailyChart" style="max-height:280px;"></canvas>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="content-card">
+            <h4>⛽ Ըստ վառելիքի տեսակի</h4>
+            <canvas id="fuelTypeChart" style="max-height:280px;"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- ======= Chart Row 2: Station compare + Payment methods ======= -->
+<div class="row g-3">
+    <div class="col-md-7">
+        <div class="content-card">
+            <h4>🏢 Կայանների համեմատություն</h4>
+            <canvas id="stationChart" style="max-height:320px;"></canvas>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="content-card">
+            <h4>💳 Վճարման եղանակներ</h4>
+            <canvas id="paymentChart" style="max-height:320px;"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- ======= Chart Row 3: Heatmap ======= -->
+<div class="row g-3">
+    <div class="col-md-12">
+        <div class="content-card">
+            <h4>🔥 Ժամային heatmap՝ վաճառքների ակտիվությունը</h4>
+            <p class="small text-muted">Ցույց է տալիս գործարքների թիվը յուրաքանչյուր ժամի × շաբաթվա օրվա համար</p>
+            <div id="heatmapContainer" style="overflow-x:auto;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ======= Chart Row 4: Top customers + Fuel depletion forecast ======= -->
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="content-card">
+            <h4>🏆 Top-10 հաճախորդներ</h4>
+            @if (Model.TopCustomers.Any())
+            {
+                <table class="table table-sm">
+                    <thead><tr><th>#</th><th>Անուն</th><th>Մակարդակ</th><th>Ընդհ․ ծախս</th><th>Միավ․</th></tr></thead>
+                    <tbody>
+                    @{ int i = 1; }
+                    @foreach (var c in Model.TopCustomers)
+                    {
+                        var tierClass = c.Tier switch {
+                            "Bronze" => "badge-tier-bronze",
+                            "Silver" => "badge-tier-silver",
+                            "Gold" => "badge-tier-gold",
+                            "Platinum" => "badge-tier-platinum",
+                            _ => "badge-soft-info"
+                        };
+                        <tr>
+                            <td><strong>@(i++)</strong></td>
+                            <td>@c.FullName</td>
+                            <td><span class="@tierClass">@c.Tier</span></td>
+                            <td>@c.TotalSpent.ToString("N0") ֏</td>
+                            <td>@c.BonusPoints</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">Հաճախորդներ դեռ չկան։</p>
+            }
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="content-card">
+            <h4>⏳ Վառելիքի սպառման կանխատեսում</h4>
+            <p class="small text-muted">Հիմք՝ վերջին 14 օրվա միջին սպառում</p>
+            @if (Model.FuelDepletionForecast.Any())
+            {
+                <table class="table table-sm">
+                    <thead><tr><th>Ռեզերվուար</th><th>Առկա</th><th>Օրական</th><th>Կսպառվի</th></tr></thead>
+                    <tbody>
+                    @foreach (var d in Model.FuelDepletionForecast.Take(8))
+                    {
+                        var daysClass = d.DaysUntilEmpty.HasValue
+                            ? (d.DaysUntilEmpty < 3 ? "badge-soft-danger" :
+                               d.DaysUntilEmpty < 7 ? "badge-soft-warning" : "badge-soft-success")
+                            : "badge-soft-info";
+                        <tr>
+                            <td><strong>@d.TankCode</strong><br><small>@d.StationName — @d.FuelTypeName</small></td>
+                            <td>@d.CurrentVolume.ToString("N0") լ</td>
+                            <td>@d.DailyAverageConsumption.ToString("N1") լ/օր</td>
+                            <td>
+                                @if (d.DaysUntilEmpty.HasValue && d.DaysUntilEmpty.Value < 1000)
+                                {
+                                    <span class="@daysClass">@d.DaysUntilEmpty.Value.ToString("F1") օր</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-soft-info">—</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+            else { <p class="text-muted">Տվյալներ չկան։</p> }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Register common palette
+        const palette = ['#667eea','#10b981','#f59e0b','#ef4444','#8b5cf6','#3b82f6','#ec4899','#06b6d4'];
+
+        // ===== Chart 1: Daily revenue =====
+        const daily = @Html.Raw(Json.Serialize(Model.DailySales));
+        if (daily.length > 0) {
+            new Chart(document.getElementById('dailyChart'), {
+                type: 'line',
+                data: {
+                    labels: daily.map(d => new Date(d.date).toLocaleDateString('hy-AM')),
+                    datasets: [{
+                        label: 'Մուտք (֏)', data: daily.map(d => d.revenue),
+                        borderColor: '#667eea', backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        fill: true, tension: 0.3, borderWidth: 3
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+        }
+
+        // ===== Chart 2: Fuel type doughnut =====
+        const byFuel = @Html.Raw(Json.Serialize(Model.SalesByFuelType));
+        if (byFuel.length > 0) {
+            new Chart(document.getElementById('fuelTypeChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: byFuel.map(f => f.fuelTypeName),
+                    datasets: [{ data: byFuel.map(f => f.revenue), backgroundColor: palette }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        // ===== Chart 3: Station stacked bar =====
+        const byStation = @Html.Raw(Json.Serialize(Model.SalesByStation));
+        if (byStation.length > 0) {
+            new Chart(document.getElementById('stationChart'), {
+                type: 'bar',
+                data: {
+                    labels: byStation.map(s => s.stationName),
+                    datasets: [
+                        { label: 'A-92', data: byStation.map(s => s.regular), backgroundColor: '#10b981' },
+                        { label: 'A-95', data: byStation.map(s => s.premium), backgroundColor: '#667eea' },
+                        { label: 'A-98', data: byStation.map(s => s.super), backgroundColor: '#f59e0b' },
+                        { label: 'Դիզել', data: byStation.map(s => s.diesel), backgroundColor: '#ef4444' },
+                        { label: 'Գազ', data: byStation.map(s => s.lpg), backgroundColor: '#8b5cf6' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: { x: { stacked: true }, y: { stacked: true } }
+                }
+            });
+        }
+
+        // ===== Chart 4: Payment method pie =====
+        const payments = @Html.Raw(Json.Serialize(Model.SalesByPaymentMethod));
+        if (payments.length > 0) {
+            new Chart(document.getElementById('paymentChart'), {
+                type: 'pie',
+                data: {
+                    labels: payments.map(p => p.method),
+                    datasets: [{ data: payments.map(p => p.amount), backgroundColor: palette }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        // ===== Chart 5: Heatmap (custom HTML grid) =====
+        const heatmap = @Html.Raw(Json.Serialize(Model.HourlyHeatmap));
+        const dayNames = ['Կիր', 'Երկ', 'Երք', 'Չրք', 'Հնգ', 'Ուր', 'Շբթ'];
+
+        // Find max for color normalization
+        let maxVal = 0;
+        for (let d = 0; d < 7; d++)
+            for (let h = 0; h < 24; h++)
+                if (heatmap[d][h] > maxVal) maxVal = heatmap[d][h];
+
+        const container = document.getElementById('heatmapContainer');
+        let html = '<table style="border-collapse:collapse; font-size:11px;">';
+        html += '<tr><td></td>';
+        for (let h = 0; h < 24; h++)
+            html += `<td style="padding:4px; text-align:center; color:#6b7280;">${h}</td>`;
+        html += '</tr>';
+
+        for (let d = 0; d < 7; d++) {
+            html += `<tr><td style="padding:4px 8px; font-weight:600;">${dayNames[d]}</td>`;
+            for (let h = 0; h < 24; h++) {
+                const val = heatmap[d][h];
+                const intensity = maxVal > 0 ? val / maxVal : 0;
+                const alpha = intensity > 0 ? (0.15 + intensity * 0.85) : 0;
+                const bg = `rgba(102, 126, 234, ${alpha})`;
+                const color = intensity > 0.5 ? 'white' : '#333';
+                html += `<td title="${dayNames[d]} ${h}:00 — ${val} գործարք"
+                            style="background:${bg}; color:${color}; width:28px; height:28px;
+                                   text-align:center; border:1px solid #f1f5f9;">${val || ''}</td>`;
+            }
+            html += '</tr>';
+        }
+        html += '</table>';
+        container.innerHTML = html;
+    </script>
+}

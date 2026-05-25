@@ -1,0 +1,58 @@
+@model GasStationMS.Models.Employee
+@{ ViewData["Title"] = Model.FullName; }
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <div>
+        <a asp-action="Index" style="color:var(--text-muted); text-decoration:none;">← Աշխատակիցներ</a>
+        <h1 style="margin:4px 0 0;">👤 @Model.FullName</h1>
+    </div>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">✏️ Խմբագրել</a>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="stat-card primary"><h6>Հերթափոխեր</h6><div class="value">@ViewBag.TotalShifts</div></div></div>
+    <div class="col-md-3"><div class="stat-card success"><h6>Վաճառքներ</h6><div class="value">@ViewBag.TotalSales</div></div></div>
+    <div class="col-md-3"><div class="stat-card info"><h6>Ընդհ․ մուտք</h6><div class="value">@(((decimal)ViewBag.TotalRevenue).ToString("N0")) ֏</div></div></div>
+    <div class="col-md-3"><div class="stat-card warning"><h6>Աշխ․ վարձ</h6><div class="value">@Model.BaseSalary.ToString("N0") ֏</div></div></div>
+</div>
+
+<div class="content-card">
+    <h3>Մանրամասներ</h3>
+    <dl class="row">
+        <dt class="col-sm-3">Պաշտոն</dt><dd class="col-sm-9">@Model.Role</dd>
+        <dt class="col-sm-3">Կայան</dt><dd class="col-sm-9">@(Model.Station?.Name ?? "—")</dd>
+        <dt class="col-sm-3">Հեռախոս</dt><dd class="col-sm-9">@Model.PhoneNumber</dd>
+        <dt class="col-sm-3">Էլ․ փոստ</dt><dd class="col-sm-9">@Model.Email</dd>
+        <dt class="col-sm-3">Ընդունվել է</dt><dd class="col-sm-9">@Model.HiredAt.ToString("yyyy-MM-dd")</dd>
+        @if (Model.TerminatedAt.HasValue)
+        {
+            <dt class="col-sm-3">Ազատվել է</dt><dd class="col-sm-9">@Model.TerminatedAt.Value.ToString("yyyy-MM-dd")</dd>
+        }
+    </dl>
+</div>
+
+<div class="content-card">
+    <h3>Վերջին հերթափոխերը</h3>
+    @if (Model.Shifts.Any())
+    {
+        <table class="table">
+            <thead><tr><th>Սկիզբ</th><th>Ավարտ</th><th>Կանխիկ սկիզբ</th><th>Կանխիկ վերջ</th><th>Վիճակ</th></tr></thead>
+            <tbody>
+            @foreach (var s in Model.Shifts)
+            {
+                <tr>
+                    <td>@s.StartedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@(s.EndedAt?.ToString("yyyy-MM-dd HH:mm") ?? "—")</td>
+                    <td>@s.OpeningCash.ToString("N0") ֏</td>
+                    <td>@s.ClosingCash.ToString("N0") ֏</td>
+                    <td>
+                        @(s.Status == GasStationMS.Models.ShiftStatus.Open ? "Բաց" :
+                          s.Status == GasStationMS.Models.ShiftStatus.Closed ? "Փակ" : "Ստուգված")
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+    else { <p class="text-muted">Հերթափոխեր չկան։</p> }
+</div>

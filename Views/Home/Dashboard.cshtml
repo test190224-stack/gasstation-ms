@@ -1,0 +1,44 @@
+@{ ViewData["Title"] = "Dashboard"; }
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap: wrap; gap: 12px;">
+    <h1 style="margin:0; font-size:28px;">📊 Վերահսկման վահանակ</h1>
+    <span style="color:var(--text-muted); font-size:14px;">@DateTime.Now.ToString("dddd, dd MMMM yyyy")</span>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card primary">
+            <h6>Կայաններ</h6>
+            <div class="value">@ViewBag.StationCount</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card success">
+            <h6>Ակտիվ աշխատակիցներ</h6>
+            <div class="value">@ViewBag.EmployeeCount</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card info">
+            <h6>Այսօրվա մուտք</h6>
+            <div class="value">@(((decimal)ViewBag.TodayRevenue).ToString("N0")) ֏</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card @(((int)ViewBag.LowStockCount) > 0 ? "danger" : "success")">
+            <h6>Ցածր պաշարներ</h6>
+            <div class="value">@ViewBag.LowStockCount</div>
+        </div>
+    </div>
+</div>
+
+<div class="content-card" style="margin-top: 24px;">
+    <h3>⚡ Արագ գործողություններ</h3>
+    <div class="d-flex gap-2 flex-wrap mt-3">
+        <a asp-controller="Sales" asp-action="Create" class="btn btn-primary">💰 Նոր վաճառք</a>
+        <a asp-controller="FuelInventory" asp-action="LowStock" class="btn btn-warning">⚠️ Ցածր պաշարներ</a>
+        <a asp-controller="FuelInventory" asp-action="Index" class="btn btn-outline-primary">⛽ Բոլոր պաշարները</a>
+        <a asp-controller="Reports" asp-action="Dashboard" class="btn btn-outline-primary">📈 Վերլուծություն</a>
+        <a asp-controller="Stations" asp-action="Index" class="btn btn-outline-primary">🏢 Կայաններ</a>
+    </div>
+</div>

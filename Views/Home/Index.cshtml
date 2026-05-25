@@ -1,0 +1,81 @@
+@{ ViewData["Title"] = "Գլխավոր"; }
+
+<div style="text-align:center; padding: 60px 20px 30px;">
+    <div style="font-size: 80px; margin-bottom: 20px;">⛽</div>
+    <h1 style="font-size: 42px; font-weight: 700; margin: 0 0 12px;">
+        GasStation Management System
+    </h1>
+    <p style="font-size: 18px; color: var(--text-muted); max-width: 700px; margin: 0 auto 32px;">
+        Բենզալցակայանների ցանցի կառավարման համապարփակ ավտոմատացված համակարգ՝ վառելիքի FIFO
+        պաշարներից մինչև loyalty հաճախորդների կառավարում և ամբողջական վերլուծություն։
+    </p>
+    <a href="/Account/Login" class="btn btn-primary btn-lg" style="padding: 14px 32px; font-size: 17px;">
+        Մուտք գործել համակարգ →
+    </a>
+</div>
+
+<div class="row g-4" style="margin-top: 40px;">
+    <div class="col-md-4">
+        <div class="content-card text-center h-100">
+            <div style="font-size:48px;">⛽</div>
+            <h4>FIFO վառելիքի հաշվառում</h4>
+            <p style="color: var(--text-muted); font-size:14px;">
+                Ամեն մատակարարումն առանձին batch է իր գնով։ Վաճառքի ժամանակ cost-ը
+                հաշվվում է First-In First-Out սկզբունքով։ Real-time շահույթի վերլուծություն։
+            </p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="content-card text-center h-100">
+            <div style="font-size:48px;">💎</div>
+            <h4>Loyalty ծրագիր</h4>
+            <p style="color: var(--text-muted); font-size:14px;">
+                4 tier՝ Bronze/Silver/Gold/Platinum։ Ավտոմատ cashback 1-5%։
+                Քարտի կոդով արագ նույնականացում, միավորներով վճարում։
+            </p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="content-card text-center h-100">
+            <div style="font-size:48px;">📊</div>
+            <h4>Առաջավոր վերլուծություն</h4>
+            <p style="color: var(--text-muted); font-size:14px;">
+                5 տարբեր գրաֆ՝ heatmap ըստ ժամերի, կայանների համեմատություն,
+                վճարման եղանակներ, top հաճախորդներ, վառելիքի սպառման կանխատեսում։
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="content-card text-center h-100">
+            <div style="font-size:48px;">🔐</div>
+            <h4>Դերային մուտք</h4>
+            <p style="color: var(--text-muted); font-size:14px;">
+                5 դեր՝ Admin, NetworkManager, Manager, Operator, Accountant։
+                Ամեն մեկի՝ սահմանված իրավունքներ և մենյու։
+            </p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="content-card text-center h-100">
+            <div style="font-size:48px;">🏭</div>
+            <h4>Մատակարարների կառավարում</h4>
+            <p style="color: var(--text-muted); font-size:14px;">
+                Մատակարարների CRUD, ամսական դինամիկայի գրաֆիկներ,
+                ծախսերի հաշվետվություն ըստ մատակարարի։
+            </p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="content-card text-center h-100">
+            <div style="font-size:48px;">📥</div>
+            <h4>Excel արտահանում</h4>
+            <p style="color: var(--text-muted); font-size:14px;">
+                Վաճառքների հաշվետվությունները՝ պատրաստի .xlsx ֆորմատով։
+                EPPlus գրադարանով՝ bold headers, ավտո-կարգավորվող սյունակներ։
+            </p>
+        </div>
+    </div>
+</div>

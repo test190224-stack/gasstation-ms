@@ -1,0 +1,55 @@
+@model IEnumerable<GasStationMS.Models.Station>
+@{ ViewData["Title"] = "Կայաններ"; }
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h1 style="margin:0;">🏢 Բենզալցակայանների ցանց</h1>
+    @if (User.IsInRole("Administrator") || User.IsInRole("NetworkManager"))
+    {
+        <a asp-action="Create" class="btn btn-primary">+ Նոր կայան</a>
+    }
+</div>
+
+<div class="content-card">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Անուն</th>
+                <th>Հասցե</th>
+                <th>Քաղաք</th>
+                <th>Ռեզերվուարներ</th>
+                <th>Աշխատակիցներ</th>
+                <th>Կարգավիճակ</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var s in Model)
+        {
+            <tr>
+                <td><strong>@s.Name</strong></td>
+                <td>@s.Address</td>
+                <td>@s.City</td>
+                <td>@s.Tanks.Count</td>
+                <td>@s.Employees.Count(e => e.IsActive)</td>
+                <td>
+                    @if (s.Status == GasStationMS.Models.StationStatus.Active)
+                    {
+                        <span class="badge-soft-success">Ակտիվ</span>
+                    }
+                    else if (s.Status == GasStationMS.Models.StationStatus.Maintenance)
+                    {
+                        <span class="badge-soft-warning">Տեխսպասարկում</span>
+                    }
+                    else
+                    {
+                        <span class="badge-soft-danger">Փակ</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@s.Id" class="btn btn-sm btn-outline-primary">Մանրամասն</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,159 @@
+@model GasStationMS.Models.FuelDelivery
+@{
+    ViewData["Title"] = "Նոր մատակարարում";
+    var tanks = ViewBag.Tanks as IEnumerable<GasStationMS.Models.FuelTank>;
+    var suppliers = ViewBag.Suppliers as IEnumerable<GasStationMS.Models.Supplier>;
+}
+
+<h1>🚚 Վառելիքի մատակարարման գրանցում</h1>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="content-card">
+            <form asp-action="Create" method="post" id="deliveryForm">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+
+                <h5>Քայլ 1. Կայան և ռեզերվուար</h5>
+                <div class="mb-3">
+                    <label asp-for="FuelTankId" class="form-label">Ռեզերվուար <span class="text-danger">*</span></label>
+                    <select asp-for="FuelTankId" id="tankSelect" class="form-select">
+                        <option value="">-- Ընտրեք ռեզերվուարը --</option>
+                        @if (tanks != null)
+                        {
+                            foreach (var t in tanks)
+                            {
+                                <option value="@t.Id">
+                                    @t.Station?.Name → @t.TankCode (@t.FuelType?.Name)
+                                </option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="FuelTankId" class="text-danger"></span>
+                </div>
+
+                <div id="tankInfo" class="alert alert-info" style="display:none;"></div>
+
+                <hr />
+                <h5>Քայլ 2. Մատակարարման տվյալներ</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="VolumeLiters" class="form-label">Ծավալ (լիտր) <span class="text-danger">*</span></label>
+                        <input asp-for="VolumeLiters" id="volume" type="number" step="0.01" min="0.01" class="form-control" />
+                        <span asp-validation-for="VolumeLiters" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="PricePerLiter" class="form-label">Գին 1 լիտրի (֏) <span class="text-danger">*</span></label>
+                        <input asp-for="PricePerLiter" id="price" type="number" step="0.01" min="0.01" class="form-control" />
+                        <span asp-validation-for="PricePerLiter" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Ընդհանուր գումար</label>
+                        <input id="total" type="text" class="form-control" readonly
+                               style="background:#f0f9ff; font-weight:700; font-size:18px; color:var(--primary);" />
+                    </div>
+                </div>
+
+                <hr />
+                <h5>Քայլ 3. Մատակարար և փաստաթղթեր</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="SupplierId" class="form-label">Մատակարար</label>
+                        <select asp-for="SupplierId" class="form-select">
+                            <option value="">-- Ընտրեք (կամ մուտքագրեք անունը ներքևում) --</option>
+                            @if (suppliers != null)
+                            {
+                                foreach (var s in suppliers)
+                                {
+                                    <option value="@s.Id">@s.Name</option>
+                                }
+                            }
+                        </select>
+                        <small class="text-muted">
+                            Նոր մատակարա՞ր է։
+                            <a asp-controller="Suppliers" asp-action="Create" target="_blank">Գրանցել նոր մատակարար</a>
+                        </small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="SupplierName" class="form-label">Կամ մատակարարի անունը (ազատ տեքստ)</label>
+                        <input asp-for="SupplierName" class="form-control" placeholder="Եթե չկա գրանցված մատակարար" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="InvoiceNumber" class="form-label">Հաշիվ-ապրանքագրի N</label>
+                        <input asp-for="InvoiceNumber" class="form-control" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="DeliveredAt" class="form-label">Մատակարարման ամսաթիվ</label>
+                        <input asp-for="DeliveredAt" type="datetime-local" class="form-control" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Notes" class="form-label">Նշումներ</label>
+                    <textarea asp-for="Notes" class="form-control" rows="2"></textarea>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary">✅ Գրանցել մատակարարումը</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Չեղարկել</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="content-card" style="position: sticky; top: 90px;">
+            <h5>💡 Ինչպես աշխատում է</h5>
+            <p class="small" style="color: var(--text-muted);">
+                Յուրաքանչյուր մատակարարում գրանցվում է որպես առանձին <strong>batch</strong>՝ իր գնով։
+                Երբ վաճառք է կատարվում, համակարգն ինքնաշխատորեն հաշվում է cost-ը
+                <strong>FIFO</strong> (First-In First-Out) սկզբունքով։
+            </p>
+            <p class="small" style="color: var(--text-muted);">
+                Սա նշանակում է՝ եթե մի ռեզերվուարում առկա է վառելիք 400 ֏/լ գնով (հին batch)
+                և 450 ֏/լ գնով (նոր batch), վաճառվելիս նախ կսպառվի հին batch-ը։
+            </p>
+            <p class="small" style="color: var(--text-muted);">
+                Dashboard-ում կարող եք տեսնել ամեն ռեզերվուարի <strong>weighted average cost</strong>-ը։
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const tankSelect = document.getElementById('tankSelect');
+        const tankInfo = document.getElementById('tankInfo');
+        const volume = document.getElementById('volume');
+        const price = document.getElementById('price');
+        const total = document.getElementById('total');
+
+        function updateTotal() {
+            const v = parseFloat(volume.value) || 0;
+            const p = parseFloat(price.value) || 0;
+            total.value = (v * p).toLocaleString('hy-AM') + ' ֏';
+        }
+        volume.addEventListener('input', updateTotal);
+        price.addEventListener('input', updateTotal);
+
+        tankSelect.addEventListener('change', async function () {
+            if (!this.value) { tankInfo.style.display = 'none'; return; }
+            try {
+                const res = await fetch('/Deliveries/GetTankInfo?id=' + this.value);
+                const d = await res.json();
+                if (d) {
+                    tankInfo.style.display = 'block';
+                    tankInfo.innerHTML =
+                        `<strong>${d.station}</strong> — ${d.fuelType}<br>` +
+                        `Ներկա մակարդակ՝ <strong>${d.current.toFixed(1)} լ</strong> / ${d.capacity.toFixed(0)} լ<br>` +
+                        `🟢 Ազատ տեղ մատակարարման համար՝ <strong>${d.available.toFixed(1)} լ</strong>`;
+                    volume.max = d.available;
+                }
+            } catch (e) { showToast('danger', 'Տվյալների ստացման սխալ'); }
+        });
+
+        updateTotal();
+    </script>
+}

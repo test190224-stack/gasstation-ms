@@ -1,0 +1,33 @@
+@model IEnumerable<GasStationMS.Models.FuelTank>
+@{ ViewData["Title"] = "Ցածր պաշարներ"; }
+
+<h1>⚠️ Ցածր պաշարի ռեզերվուարներ</h1>
+
+<div class="content-card">
+    @if (!Model.Any())
+    {
+        <div class="alert alert-success">🎉 Բոլոր ռեզերվուարները նորմալ մակարդակում են։</div>
+    }
+    else
+    {
+        <p class="text-muted">@Model.Count() ռեզերվուար իջել է նվազագույն շեմից ներքև։</p>
+        <table class="table">
+            <thead>
+                <tr><th>Ռեզերվուար</th><th>Կայան</th><th>Վառելիք</th><th>Առկա</th><th>Շեմ</th><th></th></tr>
+            </thead>
+            <tbody>
+            @foreach (var t in Model)
+            {
+                <tr>
+                    <td><strong>@t.TankCode</strong></td>
+                    <td>@t.Station.Name</td>
+                    <td>@t.FuelType.Name</td>
+                    <td style="color:var(--danger); font-weight:600;">@t.CurrentVolumeLiters.ToString("N1") լ</td>
+                    <td>@t.MinThresholdLiters.ToString("N0") լ</td>
+                    <td><a asp-action="RegisterDelivery" asp-route-tankId="@t.Id" class="btn btn-sm btn-primary">Մատակարարել</a></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>

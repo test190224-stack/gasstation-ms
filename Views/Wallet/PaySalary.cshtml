@@ -1,0 +1,56 @@
+@{ ViewData["Title"] = "Աշ. վարձ վճարել"; }
+
+<h1>💸 Աշ. վարձ վճարել</h1>
+
+<div class="content-card" style="max-width: 620px;">
+    <form asp-action="PaySalary" method="post">
+        @Html.AntiForgeryToken()
+        <div class="mb-3">
+            <label class="form-label">Աշխատակից <span class="text-danger">*</span></label>
+            <select name="employeeId" id="empSelect" class="form-select" required>
+                <option value="">-- Ընտրեք --</option>
+                @foreach (var e in (IEnumerable<GasStationMS.Models.Employee>)ViewBag.Employees)
+                {
+                    <option value="@e.Id" data-salary="@e.BaseSalary">
+                        @e.FullName (@e.Role — @(e.Station?.Name ?? "ընդ."))
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Գումար (֏) <span class="text-danger">*</span></label>
+                <input name="amount" id="amount" type="number" step="0.01" min="1" class="form-control" required />
+                <small class="text-muted">Կրկնեք բազային աշ. վարձ-ը կամ մուտքագրեք ուրիշ</small>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Ամսաթիվ</label>
+                <input name="occuredAt" type="datetime-local" class="form-control"
+                       value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Reference (Payslip N)</label>
+                <input name="reference" class="form-control" placeholder="Օր․ PAY-2026-04" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Նշումներ</label>
+                <input name="notes" class="form-control" placeholder="Ապրիլ ամիս..." />
+            </div>
+        </div>
+        <div class="d-flex gap-2 mt-2">
+            <button type="submit" class="btn btn-primary">✅ Վճարել</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Չեղ.</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('empSelect').addEventListener('change', function() {
+            const salary = this.options[this.selectedIndex].dataset.salary;
+            if (salary) document.getElementById('amount').value = salary;
+        });
+    </script>
+}

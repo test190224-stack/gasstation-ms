@@ -1,0 +1,11 @@
+# Build outputs
+bin/
+obj/
+# IDE
+.vs/
+.vscode/
+*.user
+# Local libraries (loaded from CDN now)
+wwwroot/lib/
+# Migrations (using EnsureCreated instead)
+Migrations/

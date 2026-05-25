@@ -1,0 +1,63 @@
+@model GasStationMS.Models.Employee
+@{ ViewData["Title"] = "Խմբագրել աշխատակցին"; }
+
+<h1>✏️ Խմբագրել՝ @Model.FullName</h1>
+
+<div class="content-card" style="max-width: 700px;">
+    <form asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="HiredAt" />
+        <input type="hidden" asp-for="UserId" />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="row">
+            <div class="col-md-4 mb-3"><label class="form-label">Ազգանուն</label><input asp-for="LastName" class="form-control" /></div>
+            <div class="col-md-4 mb-3"><label class="form-label">Անուն</label><input asp-for="FirstName" class="form-control" /></div>
+            <div class="col-md-4 mb-3"><label class="form-label">Հայրանուն</label><input asp-for="MiddleName" class="form-control" /></div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3"><label class="form-label">Հեռախոս</label><input asp-for="PhoneNumber" class="form-control" /></div>
+            <div class="col-md-6 mb-3"><label class="form-label">Էլ․ փոստ</label><input asp-for="Email" class="form-control" /></div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Պաշտոն</label>
+                <select asp-for="Role" class="form-select">
+                    <option value="1">Օպերատոր</option><option value="2">Մենեջեր</option>
+                    <option value="3">Հաշվապահ</option><option value="4">Ցանցի կառավարիչ</option>
+                    <option value="5">Ադմինիստրատոր</option>
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Կայան</label>
+                <select asp-for="StationId" class="form-select">
+                    <option value="">-- Չի նշանակված --</option>
+                    @foreach (var s in (IEnumerable<GasStationMS.Models.Station>)ViewBag.Stations)
+                    {
+                        <option value="@s.Id">@s.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Բազային աշխատավարձ</label>
+                <input asp-for="BaseSalary" type="number" class="form-control" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-check mt-4">
+                    <input asp-for="IsActive" type="checkbox" class="form-check-input" />
+                    Ակտիվ
+                </label>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-primary">💾 Պահպանել</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Չեղարկել</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

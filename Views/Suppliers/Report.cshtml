@@ -1,0 +1,62 @@
+@model IEnumerable<GasStationMS.ViewModels.SupplierReportRow>
+@{ ViewData["Title"] = "Մատակարարների հաշվետվություն"; }
+
+<h1>📊 Մատակարարների հաշվետվություն</h1>
+
+<div class="content-card">
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-3">
+            <label class="form-label" style="font-size:13px;">Սկիզբ</label>
+            <input type="date" name="from" value="@(((DateTime)ViewBag.From).ToString("yyyy-MM-dd"))" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" style="font-size:13px;">Ավարտ</label>
+            <input type="date" name="to" value="@(((DateTime)ViewBag.To).ToString("yyyy-MM-dd"))" class="form-control" />
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-outline-primary w-100">Ֆիլտր</button>
+        </div>
+    </form>
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-6"><div class="stat-card primary"><h6>Ընդհ․ ծավալ</h6><div class="value">@(((decimal)ViewBag.TotalVolume).ToString("N1")) լ</div></div></div>
+        <div class="col-md-6"><div class="stat-card success"><h6>Ընդհ․ ծախս</h6><div class="value">@(((decimal)ViewBag.TotalCost).ToString("N0")) ֏</div></div></div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Մատակարար</th><th>Մատակարարումներ</th><th>Ծավալ (լ)</th>
+                <th>Ընդհ․ ծախս (֏)</th><th>Միջ․ գին (֏/լ)</th><th>% ծախսերից</th>
+            </tr>
+        </thead>
+        <tbody>
+        @{
+            decimal totalCost = (decimal)ViewBag.TotalCost;
+        }
+        @foreach (var row in Model)
+        {
+            var pct = totalCost > 0 ? (row.TotalCost / totalCost * 100m) : 0m;
+            <tr>
+                <td><strong>@row.Name</strong></td>
+                <td>@row.DeliveryCount</td>
+                <td>@row.TotalVolume.ToString("N1")</td>
+                <td>@row.TotalCost.ToString("N0")</td>
+                <td>@row.AvgPricePerLiter.ToString("N0")</td>
+                <td>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="flex:1; background:#f1f5f9; border-radius:8px; overflow:hidden; height:8px;">
+                            <div style="background:var(--primary); width:@pct.ToString("F1")%; height:100%;"></div>
+                        </div>
+                        <span style="font-size:12px; white-space:nowrap;">@pct.ToString("F1")%</span>
+                    </div>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (!Model.Any())
+    {
+        <p class="text-muted text-center">Ընտրված ժամանակահատվածում մատակարարումներ չկան։</p>
+    }
+</div>

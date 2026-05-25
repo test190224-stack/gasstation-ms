@@ -1,0 +1,8 @@
+/* Custom site styles — loaded on top of Bootstrap */
+/* Գլխավոր styling-ը կատարված է _Layout.cshtml-ի <style> block-ում */
+
+/* Print styles */
+@media print {
+    .topbar, footer, .btn { display: none !important; }
+    .content-card { box-shadow: none !important; border: 1px solid #ccc; }
+}
