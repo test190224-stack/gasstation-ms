@@ -117,7 +117,7 @@ namespace GasStationMS.Controllers
                 discountPct = coupon.DiscountPercentage,
                 faceValue = coupon.FaceValue,
                 volumeLiters = coupon.VolumeLiters,
-                expiresAt = coupon.ExpiresAt?.ToString("yyyy-MM-dd")
+                expiresAt = coupon.ExpiresAt.ToString("yyyy-MM-dd")
             });
         }
 
